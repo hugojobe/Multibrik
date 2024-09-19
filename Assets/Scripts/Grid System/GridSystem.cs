@@ -5,7 +5,9 @@ using UnityEngine;
 
 public class GridSystem : MonoBehaviour
 {
-	[SerializeField]
+	public static GridSystem instance;
+
+    [SerializeField]
 	private bool LeftSide;
 
 	public List<GameObject> allTiles;
@@ -14,7 +16,9 @@ public class GridSystem : MonoBehaviour
 	public int gridHeight;
 	public GameObject[,] tileGrid;
 
-	private void Start() {
+    private void Awake() {
+        instance = this;
+
 		tileGrid = new GameObject[gridWidth, gridHeight];
 
 		FindTiles();
@@ -36,8 +40,8 @@ public class GridSystem : MonoBehaviour
 	}
 
 	public GameObject GetTile(int y, int x) {
-		if(y >= 0 && y <  gridWidth && x >= 0 && x < gridHeight) {
-			return tileGrid[y, x];
+		if(x >= 0 && x <  gridWidth && y >= 0 && y < gridHeight) {
+			return tileGrid[x, y];
 		}
 		return null;
 	}

@@ -58,7 +58,43 @@ MonoBehaviour:
   m_ControlsChangedEvent:
     m_PersistentCalls:
       m_Calls: []
-  m_ActionEvents: []
+  m_ActionEvents:
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: c5b3c1e5-869a-43ff-ad43-96b0673ecb87
+    m_ActionName: Player/Connect[/Keyboard/backquote,/XInputControllerWindows1/leftShoulder,/XInputControllerWindows/leftShoulder,/XInputControllerWindows1/rightShoulder,/XInputControllerWindows/rightShoulder]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: d8d58acb-c167-4051-a3d9-4b778b3f90d1
+    m_ActionName: Player/Shop1[/Keyboard/1,/XInputControllerWindows1/buttonWest,/XInputControllerWindows/buttonWest]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 70d30f1a-679a-442f-8589-bc803fee9f9d
+    m_ActionName: Player/Shop2[/Keyboard/2,/XInputControllerWindows1/buttonNorth,/XInputControllerWindows/buttonNorth]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 50048905-64a1-4c4b-aae2-d58cd2721c55
+    m_ActionName: Player/Shop3[/Keyboard/3,/XInputControllerWindows1/buttonEast,/XInputControllerWindows/buttonEast]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 6503b55b-4950-4f80-bd41-af17d008bf48
+    m_ActionName: Player/Shop4[/Keyboard/4,/XInputControllerWindows1/buttonSouth,/XInputControllerWindows/buttonSouth]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 782194909910554825}
+        m_TargetAssemblyTypeName: 
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: eb5c47aa-e63a-46fd-a899-fec2f7ce4824
+    m_ActionName: Player/MoveGhost[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d,/XInputControllerWindows1/leftStick/up,/XInputControllerWindows/leftStick/up,/XInputControllerWindows1/leftStick/down,/XInputControllerWindows/leftStick/down,/XInputControllerWindows1/leftStick/left,/XInputControllerWindows/leftStick/left,/XInputControllerWindows1/leftStick/right,/XInputControllerWindows/leftStick/right,/XInputControllerWindows1/rightStick/up,/XInputControllerWindows/rightStick/up,/XInputControllerWindows1/rightStick/down,/XInputControllerWindows/rightStick/down,/XInputControllerWindows1/rightStick/left,/XInputControllerWindows/rightStick/left,/XInputControllerWindows1/rightStick/right,/XInputControllerWindows/rightStick/right]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -76,7 +112,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2b950c810d76cd4196686ea86a54c00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerIndex: 0
   gridSystem: {fileID: 0}
-  balance: 0
-  inputAction: {fileID: -944628639613478452, guid: a631f10d797705d428f942d6739be86f,
-    type: 3}
+  balanceText: {fileID: 0}
