@@ -15,6 +15,7 @@ Material:
   m_ValidKeywords:
   - _FRAME_ANIMATION_AUTOMATIC
   - _SPRITE_ORIENTATION_REGULAR
+  - _USE_MOTION_VECTOR
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -27,15 +28,15 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - Texture2D_1c9f3b45a66a4d88b4ad4951cbe4ff54:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 8a6a2c72cf5823f4299eb4adb19a2784, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - Texture2D_e9703806004f4752934454a6ee595797:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 11bec7af8a7f5204bb5f20343d2196ad, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Motion_vector:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 6191239253e752248adb6e59214ec258, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -65,7 +66,7 @@ Material:
     - _QueueOffset: 0
     - _ROTATE_UV_TRAIL: 0
     - _SPRITE_ORIENTATION: 0
-    - _USE_MOTION_VECTOR: 0
+    - _USE_MOTION_VECTOR: 1
     m_Colors:
     - Color_e6caed8b54cd469fa5d7c358c90c19cc: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
