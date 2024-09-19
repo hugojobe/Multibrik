@@ -7,12 +7,14 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_ShineEffect
-  m_Shader: {fileID: -6465566751694194690, guid: 4a7453045788a534089102bdbbb83995,
+  m_Name: Shader Graphs_Shader_Emissive_Flames
+  m_Shader: {fileID: -6465566751694194690, guid: 6ea416245032b304da1b262db7c40fcc,
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _FRAME_ANIMATION_AUTOMATIC
+  - _SPRITE_ORIENTATION_REGULAR
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -24,6 +26,18 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - Texture2D_1c9f3b45a66a4d88b4ad4951cbe4ff54:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_e9703806004f4752934454a6ee595797:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Motion_vector:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -38,23 +52,24 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Height: 1.01
-    - _Power: 13.8
-    - _Progression: 0.388
+    - Vector1_0671ea344b044e029790543672a6a90f: 20
+    - Vector1_392a4b66f32049d9ab1084f3a8c71a0a: 8
+    - Vector1_70743c15ff3e490cb232c8512c705597: 0
+    - Vector1_d1ebd2a9a3e148b987344089daf08854: 8
+    - _BLEND_WITH_VERTEX_COLOR: 0
+    - _Depth_fade_distance: 0.25
+    - _FRAME_ANIMATION: 0
+    - _Frame: 0
+    - _Motion_vector_intensity: 0
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _ShineIntensity: 0
-    - _ShineSpeed: 0
-    - _Speed: 1
-    - _Width: 1.5
-    - _power: 6.46
+    - _ROTATE_UV_TRAIL: 0
+    - _SPRITE_ORIENTATION: 0
+    - _USE_MOTION_VECTOR: 0
     m_Colors:
-    - _Color: {r: 0.1792453, g: 0.1792453, b: 0.1792453, a: 0}
-    - _Glow: {r: 0, g: 0, b: 0, a: 0}
-    - _ShineColor: {r: 0, g: 0, b: 0, a: 0}
-    - _ShineIntensity: {r: 776.0469, g: 740.0932, b: 0, a: 0}
+    - Color_e6caed8b54cd469fa5d7c358c90c19cc: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
---- !u!114 &7095573301392584767
+--- !u!114 &8977097969243037761
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
