@@ -73,7 +73,7 @@ public class BallController : MonoBehaviour
         } else if(other.TryGetComponent(out Rotoballe rotoballe)) {
             rotoballe.TakeDamage(1, other.ClosestPoint(transform.position), other.ClosestPointOnBounds(transform.position) - transform.position);
             
-            Vector3 directionToEnemyShip = rotoballe.otherShip.transform.position - rotoballe.transform.position;
+            Vector3 directionToEnemyShip = rotoballe.otherShip.transform.position - transform.position;
             directionToEnemyShip = new Vector3(directionToEnemyShip.x, 0, directionToEnemyShip.z);
 
             rb.velocity = directionToEnemyShip.normalized * ballInitialSpeed;

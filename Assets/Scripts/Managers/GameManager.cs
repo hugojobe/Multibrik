@@ -59,7 +59,7 @@ public class GameManager : MonoBehaviour
 	}
 
 	private void Start() {
-		StartGame();
+		//StartGame();
     }
 
 	public void StartGame() {
@@ -68,6 +68,8 @@ public class GameManager : MonoBehaviour
 
 		SpawnStartingConfig(leftShipTile, true);
 		SpawnStartingConfig(rightShipTile, false);
+
+		CameraManager.instance.InitializeCameras();
 
 		float launchDelay = Random.Range(ballLaunchDelay - ballLaunchDelayModifier, ballLaunchDelay + ballLaunchDelayModifier);
 		ballLauncher.LaunchBall(launchDelay);
@@ -90,6 +92,7 @@ public class GameManager : MonoBehaviour
 		shipTile.isEmpty = false;
 		ShipBlock newShip = spawnedShip.GetComponent<ShipBlock>();
         newShip.playerIndex = leftSide ? 0 : 1;
+		CameraManager.instance.ships.Add(spawnedShip);
 
         ships.Add(newShip);
 
