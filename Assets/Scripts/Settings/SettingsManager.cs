@@ -7,32 +7,18 @@ public class SettingsManager : MonoBehaviour
 {
 
     [SerializeField]
-    private Material colorCorrectionMat;
-    [SerializeField]
     private AudioMixer masterMixer;
     [SerializeField]
     private AudioMixer musicMixer;
     [SerializeField]
     private AudioMixer vfxMixer;
+    [SerializeField]
+    private ColorCorrectionManager colorCorrectionManager;
 
 
     private float volumeSteps = 8.0f;
     private const float MINVOLUME = -80f;
 
-
-
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
     public void ChangeMasterVolume(float newvolume){
         masterMixer.SetFloat("Volume", newvolume * volumeSteps + MINVOLUME);
@@ -44,6 +30,13 @@ public class SettingsManager : MonoBehaviour
 
      public void ChangeVFXVolume(float newvolume){
         vfxMixer.SetFloat("Volume", newvolume * volumeSteps + MINVOLUME);
+    }
+
+    public void ChangeBrightness(float value){
+        colorCorrectionManager.SetBrightness(value);
+    }
+    public void ChangeGamma(float value){
+        colorCorrectionManager.SetGamma(value);
     }
 
     public void QuitGame(){
