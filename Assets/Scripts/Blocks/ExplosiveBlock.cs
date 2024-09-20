@@ -24,7 +24,7 @@ public class ExplosiveBlock : MonoBehaviour
         foreach(Collider collider in colliders) {
             Block block = collider.GetComponent<Block>();
             if(block != null) {
-                block.TakeDamage(1);
+                block.TakeDamage(1, Vector3.zero, Vector3.zero);
             }
         }
 

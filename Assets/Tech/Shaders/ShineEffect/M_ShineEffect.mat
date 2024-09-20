@@ -40,7 +40,7 @@ Material:
     m_Floats:
     - _Height: 1.01
     - _Power: 13.8
-    - _Progression: 0.451
+    - _Progression: 0.485
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ShineIntensity: 0
