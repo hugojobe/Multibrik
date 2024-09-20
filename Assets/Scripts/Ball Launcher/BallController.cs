@@ -53,7 +53,7 @@ public class BallController : MonoBehaviour
         rb.velocity = Vector3.Reflect(rb.velocity, normal);
 
         if(other.TryGetComponent(out BlockDamageInterface block)) {
-            block.TakeDamage(baseDamage * damageMultiplier);
+            block.TakeDamage(baseDamage * damageMultiplier, other.ClosestPoint(transform.position), other.ClosestPointOnBounds(transform.position) - transform.position);
         }
     }
 
@@ -65,13 +65,13 @@ public class BallController : MonoBehaviour
             explosiveBlock.GetComponent<Rigidbody>().AddForce(rb.velocity.normalized * ballInitialSpeed * 2, ForceMode.Impulse);
             HandleBounceCollision(other);
         } else if(other.TryGetComponent(out SpongeBlock spongeBlock)) {
-            spongeBlock.TakeDamage(1);
+            spongeBlock.TakeDamage(1, other.ClosestPoint(transform.position), other.ClosestPointOnBounds(transform.position) - transform.position);
             Vector3 normal = GetCollisionNormal(other);
             rb.velocity = Vector3.Reflect(rb.velocity, normal);
             rb.velocity = rb.velocity.normalized * ballInitialSpeed * spongeBlock.ballSpeedMultiplier;
             damageMultiplier = 2;
         } else if(other.TryGetComponent(out Rotoballe rotoballe)) {
-            rotoballe.TakeDamage(1);
+            rotoballe.TakeDamage(1, other.ClosestPoint(transform.position), other.ClosestPointOnBounds(transform.position) - transform.position);
             
             Vector3 directionToEnemyShip = rotoballe.otherShip.transform.position - rotoballe.transform.position;
             directionToEnemyShip = new Vector3(directionToEnemyShip.x, 0, directionToEnemyShip.z);
