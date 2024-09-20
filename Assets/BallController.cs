@@ -4,46 +4,99 @@ using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
-    public static BallController instance;
+	public static BallController instance;
 
-    public Rigidbody rb;
+	public Rigidbody rb;
 
-    public int baseDamage;
-    public int damageMultiplier;
+	public int baseDamage;
+	public int damageMultiplier;
 
-    private void Awake() {
-        instance = this;
-    }
-    public void ReplaceVelocity(Vector3 direction) {
-        direction = new Vector3(direction.x, 0, direction.z);
+	public float ballInitialSpeed;
 
-        rb.velocity = direction;
-    }
+	private bool resetSpeedNextBounce;
 
-    private void Update() {
-        if(GameManager.instance.hasGameStarted){
-            bool isLeftSide = transform.position.x > 0;
-            GameManager.instance.playerBuildingSystems[0].canGhostBeBuilt = isLeftSide;
-            GameManager.instance.playerBuildingSystems[1].canGhostBeBuilt = !isLeftSide;
-        }
-    }
+	private void Awake() {
+		instance = this;
+	}
+	public void ReplaceVelocity(Vector3 direction) {
+		direction = new Vector3(direction.x, 0, direction.z);
 
+		rb.velocity = direction;
+	}
+
+	private void Update() {
+		if(GameManager.instance.hasGameStarted){
+			bool isRightSide = transform.position.x > 0;
+
+			if(GameManager.instance.playerBuildingSystems.Count > 0){
+				GameManager.instance.playerBuildingSystems[0].canGhostBeBuilt = isRightSide;
+				GameManager.instance.playerBuildingSystems[1].canGhostBeBuilt = !isRightSide;
+			}
+		}
+	}
     private void OnTriggerEnter(Collider other) {
         if(other.gameObject.CompareTag("Bounce")) {
-            Vector3 normal = other.ClosestPointOnBounds(transform.position) - transform.position;
-            normal = new Vector3(normal.x, 0, normal.z).normalized;
-
-            Vector3 newVelocity = Vector3.Reflect(rb.velocity, normal);
-
-            Vector3 contactPoint = other.ClosestPoint(transform.position);
-
-            //Debug.DrawLine(contactPoint, contactPoint - rb.velocity, Color.red, 2f);
-            //Debug.DrawLine(contactPoint, contactPoint + newVelocity, Color.blue, 2f);
-
-            rb.velocity = newVelocity;
-
-            other.TryGetComponent(out BlockDamageInterface block);
-            block?.TakeDamage(baseDamage * damageMultiplier);
+            HandleBounceCollision(other);
+        } else if(other.gameObject.CompareTag("Explosive") || other.gameObject.CompareTag("Sponge") || other.gameObject.CompareTag("Rotoballe")) {
+            HandleSpecialCollision(other);
         }
     }
+
+    private void HandleBounceCollision(Collider other) {
+        if(resetSpeedNextBounce) {
+            rb.velocity = rb.velocity.normalized * ballInitialSpeed;
+            resetSpeedNextBounce = false;
+            damageMultiplier = 1;
+        }
+
+        Vector3 normal = GetCollisionNormal(other);
+        rb.velocity = Vector3.Reflect(rb.velocity, normal);
+
+        if(other.TryGetComponent(out BlockDamageInterface block)) {
+            block.TakeDamage(baseDamage * damageMultiplier);
+        }
+    }
+
+    private void HandleSpecialCollision(Collider other) {
+        resetSpeedNextBounce = true;
+
+        if(other.TryGetComponent(out ExplosiveBlock explosiveBlock)) {
+            explosiveBlock.StartExplosionSequence();
+            explosiveBlock.GetComponent<Rigidbody>().AddForce(rb.velocity.normalized * ballInitialSpeed * 2, ForceMode.Impulse);
+            HandleBounceCollision(other);
+        } else if(other.TryGetComponent(out SpongeBlock spongeBlock)) {
+            spongeBlock.TakeDamage(1);
+            Vector3 normal = GetCollisionNormal(other);
+            rb.velocity = Vector3.Reflect(rb.velocity, normal);
+            rb.velocity = rb.velocity.normalized * ballInitialSpeed * spongeBlock.ballSpeedMultiplier;
+            damageMultiplier = 2;
+        } else if(other.TryGetComponent(out Rotoballe rotoballe)) {
+            rotoballe.TakeDamage(1);
+            
+            Vector3 directionToEnemyShip = rotoballe.otherShip.transform.position - rotoballe.transform.position;
+            directionToEnemyShip = new Vector3(directionToEnemyShip.x, 0, directionToEnemyShip.z);
+
+            rb.velocity = directionToEnemyShip.normalized * ballInitialSpeed;
+
+            if(resetSpeedNextBounce) {
+                resetSpeedNextBounce = false;
+                damageMultiplier = 1;
+            }
+        }
+    }
+
+    private Vector3 GetCollisionNormal(Collider other) {
+        Vector3 normal = other.ClosestPointOnBounds(transform.position) - transform.position;
+        return new Vector3(normal.x, 0, normal.z).normalized;
+    }
+
+    private void SetRandomVelocity(float speedMultiplier) {
+        Vector3 randomNormalizedVector = Random.insideUnitSphere;
+        randomNormalizedVector.y = 0;
+        randomNormalizedVector.Normalize();
+
+        rb.velocity = randomNormalizedVector * ballInitialSpeed * speedMultiplier;
+    }
+
+	
 }

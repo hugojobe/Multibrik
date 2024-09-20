@@ -9,12 +9,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5143929336590745357}
-  - component: {fileID: 7208064054693474657}
-  - component: {fileID: 3961205124042343486}
-  - component: {fileID: 1314697323568069117}
+  - component: {fileID: 1843874178651575715}
+  - component: {fileID: 3445996773472302433}
   m_Layer: 0
-  m_Name: Explosive
-  m_TagString: Explosive
+  m_Name: "Tonneau Blind\xE9"
+  m_TagString: Bounce
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -28,15 +27,15 @@ Transform:
   m_GameObject: {fileID: 2139314116167884990}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -6.655, y: 0, z: 0.612}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6936322742133052442}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!136 &7208064054693474657
-CapsuleCollider:
+--- !u!65 &1843874178651575715
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -53,39 +52,10 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.3095883
-  m_Height: 0.74887586
-  m_Direction: 1
-  m_Center: {x: 0, y: 0.4788038, z: 0}
---- !u!54 &3961205124042343486
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2139314116167884990}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 112
-  m_CollisionDetection: 0
---- !u!114 &1314697323568069117
+  serializedVersion: 3
+  m_Size: {x: 0.8193902, y: 0.7616538, z: 1.2283838}
+  m_Center: {x: 0, y: 0.365, z: 0}
+--- !u!114 &3445996773472302433
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -94,11 +64,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 2139314116167884990}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68afadae9aaa4b643b0245a41b4ec3ae, type: 3}
+  m_Script: {fileID: 11500000, guid: 2e01df5fab8e38249adbf6652913c630, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ballSpeedMultiplier: 2
-  explosionRadius: 0.96
+  baseHealth: 4
+  currentHealth: 0
+  correspondingTile: {fileID: 0}
 --- !u!1 &5074004818053548956
 GameObject:
   m_ObjectHideFlags: 0
@@ -125,13 +96,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5074004818053548956}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.4787, z: 0}
-  m_LocalScale: {x: 0.60844064, y: 0.37431037, z: 0.6084406}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0.365, z: 0}
+  m_LocalScale: {x: 0.7986882, y: 0.60511076, z: 0.73}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5143929336590745357}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!33 &3589876227219922917
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -160,7 +131,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 36cc02d284f8d3b4b8a13837cf18db7f, type: 2}
+  - {fileID: 2100000, guid: 1e7cb196658181d4f9608ee7dc56aa4f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
