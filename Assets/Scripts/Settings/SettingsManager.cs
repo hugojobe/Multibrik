@@ -9,10 +9,6 @@ public class SettingsManager : MonoBehaviour
     [SerializeField]
     private AudioMixer masterMixer;
     [SerializeField]
-    private AudioMixer musicMixer;
-    [SerializeField]
-    private AudioMixer vfxMixer;
-    [SerializeField]
     private ColorCorrectionManager colorCorrectionManager;
 
 
@@ -25,11 +21,11 @@ public class SettingsManager : MonoBehaviour
     }
 
     public void ChangeMusicVolume(float newvolume){
-        musicMixer.SetFloat("Volume", newvolume * volumeSteps + MINVOLUME);
+        masterMixer.SetFloat("MusicVolume", newvolume * volumeSteps + MINVOLUME);
     }
 
      public void ChangeVFXVolume(float newvolume){
-        vfxMixer.SetFloat("Volume", newvolume * volumeSteps + MINVOLUME);
+        masterMixer.SetFloat("VFXVolume", newvolume * volumeSteps + MINVOLUME);
     }
 
     public void ChangeBrightness(float value){
