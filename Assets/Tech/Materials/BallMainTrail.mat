@@ -53,12 +53,25 @@ Material:
     - _AlphaCutoff: 0.5
     - _DistortionIntencity: 0.178
     - _DistortionPanSpeed: 2.44
+    - _FastDistortionIntencity: 0.323
+    - _FastDistortionPanSpeed: 1.72
+    - _FastPanSpeed: 1.5
+    - _FastWidth: 4.6
+    - _FastlAberationIntencity: 0.0152
+    - _FlastLengh: 2.22
     - _Lengh: 3.21
-    - _NoisePower: 1.59
+    - _NoisePower: 2.07
     - _PanSpeed: 2.23
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
+    - _SlowAberationIntencity: 0.0118
+    - _SlowDistortionIntencity: 0.071
+    - _SlowDistortionPanSpeed: 1.07
+    - _SlowLengh: 3.79
+    - _SlowPanSpeed: 0.84
+    - _SlowWidth: 6.86
+    - _Speed: 1
     - _Width: 8.11
     - _aberation: 0.0296
     m_Colors:
@@ -67,5 +80,9 @@ Material:
     - _ColorA: {r: 11.181763, g: 1.5391514, b: 1.002139, a: 0}
     - _ColorB: {r: 6.88318, g: 2.65007, b: 0.5045261, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _FastColorA: {r: 11.755771, g: 1.6860362, b: 13.238506, a: 0}
+    - _FastColorB: {r: 0.9475738, g: 1.8236512, b: 8.734157, a: 0}
+    - _SlowColorA: {r: 3.1865432, g: 0.6173536, b: 0.31564814, a: 0}
+    - _SlowColorB: {r: 11.18176, g: 8.061097, b: 1.5295806, a: 0}
     - _t: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
