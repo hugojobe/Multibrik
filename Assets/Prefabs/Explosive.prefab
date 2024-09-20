@@ -11,9 +11,10 @@ GameObject:
   - component: {fileID: 5143929336590745357}
   - component: {fileID: 7208064054693474657}
   - component: {fileID: 3961205124042343486}
+  - component: {fileID: 1314697323568069117}
   m_Layer: 0
   m_Name: Explosive
-  m_TagString: Bounce
+  m_TagString: Explosive
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -84,6 +85,20 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
+--- !u!114 &1314697323568069117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2139314116167884990}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68afadae9aaa4b643b0245a41b4ec3ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ballSpeedMultiplier: 2
+  explosionRadius: 0.96
 --- !u!1 &5074004818053548956
 GameObject:
   m_ObjectHideFlags: 0
