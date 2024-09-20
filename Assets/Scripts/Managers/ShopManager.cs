@@ -10,6 +10,8 @@ public class ShopManager : MonoBehaviour
         3, 5, 4, 6
     };
 
+    public GameObject[] itemPrefabs;
+
     public GameObject[] itemGhosts;
 
     private void Awake() {

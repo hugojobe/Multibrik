@@ -23,9 +23,16 @@ public class PlayersManager : MonoBehaviour
 
     public void OnPlayerJoined(PlayerInput playerInput) {
 		playerPrefabs.Add(playerInput.gameObject);
-		playerInput.gameObject.GetComponent<PlayerBuildingSystem>().gridSystem = gridSystems[playerInput.playerIndex];
+        PlayerBuildingSystem playerBuildingSystem = playerInput.gameObject.GetComponent<PlayerBuildingSystem>();
 
-		ColorUtility.TryParseHtmlString("#70ED40", out Color color);
+		playerBuildingSystem.playerIndex = playerInput.playerIndex;
+        playerBuildingSystem.gridSystem = gridSystems[playerInput.playerIndex];
+		playerBuildingSystem.balanceText = GameManager.instance.balanceTexts[playerInput.playerIndex];
+		playerBuildingSystem.balance = GameManager.instance.startBalance;
+
+		GameManager.instance.playerBuildingSystems.Add(playerBuildingSystem);
+
+        ColorUtility.TryParseHtmlString("#70ED40", out Color color);
 		connectionStatus[playerInput.playerIndex].color = color;
 
 		if(playerPrefabs.Count == 2) {
@@ -36,8 +43,8 @@ public class PlayersManager : MonoBehaviour
 	public void OnPlayerLeft(PlayerInput playerInput){
 		ColorUtility.TryParseHtmlString("#595959", out Color color);
 		connectionStatus[playerInput.playerIndex].color = color;
-		Debug.Break();
-		Debug.LogError($"Player {playerInput.playerIndex} disconnected");
+		//Debug.Break();
+		//Debug.LogError($"Player {playerInput.playerIndex} disconnected");
 
 		connectionStatus[2].color = color;
 	}
@@ -45,5 +52,7 @@ public class PlayersManager : MonoBehaviour
 	private void OnGameReady() {
 		ColorUtility.TryParseHtmlString("#70ED40", out Color color);
 		connectionStatus[2].color = color;
+
+		GameManager.instance.StartGame();
 	}
 }
