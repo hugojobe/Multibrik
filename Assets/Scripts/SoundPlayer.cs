@@ -11,6 +11,7 @@ public class SoundPlayer : MonoBehaviour
     [SerializeField]
     private float minPitch = -3f, maxPitch = 3f;
     private float currentPitch = 1f;
+    [SerializeField]
     private AudioSource emitter;
 
 
@@ -27,9 +28,10 @@ public class SoundPlayer : MonoBehaviour
     /// </summary>
     void OnEnable()
     {
-        if(TryGetComponent<AudioSource>(out emitter)){
-            Play();
+        if(emitter == null && !TryGetComponent<AudioSource>(out emitter)){
+            this.enabled = false;
         }
+        
     }
 
 }
