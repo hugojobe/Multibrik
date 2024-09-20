@@ -38,6 +38,8 @@ public class PlayerBuildingSystem : MonoBehaviour
 
 	public bool canGhostBeBuilt;
 
+	public CoinManager coinManager;
+
 	public void OnShop1() {
 		BuyShop(0);
 	}
@@ -58,6 +60,9 @@ public class PlayerBuildingSystem : MonoBehaviour
     {
         ghostJoystickAction = GetComponent<PlayerInput>().actions.FindActionMap("Player").FindAction("MoveGhost");
         ghostJoystickAction.Enable();
+
+		coinManager = gridSystem.GetComponent<CoinManager>();
+		coinManager.playerBuildingSystem = this;
     }
 
     void OnDisable()
@@ -86,6 +91,7 @@ public class PlayerBuildingSystem : MonoBehaviour
 	}
 
 	private void BuyShop(int itemIndex) {
+
 		if(buildingState == PlayerBuildingState.Ghost && itemIndex == ghostBuildIndex){
 			if(gridSystem.GetTile(ghostBuildingPosition.x, ghostBuildingPosition.y).GetComponent<Tile>().isEmpty == false || canGhostBeBuilt == false)
 				return;
@@ -93,6 +99,9 @@ public class PlayerBuildingSystem : MonoBehaviour
 			BuildFinal(itemIndex);
 			return;
 		}
+
+		if(buildingState == PlayerBuildingState.Ghost)
+			return;
 
         int itemPrice = ShopManager.itemPrices[itemIndex];
 		if(balance < itemPrice){
@@ -108,8 +117,11 @@ public class PlayerBuildingSystem : MonoBehaviour
 	}
 
 	private void SpendMoney(int amount) {
+		for(int i = 0; i < amount; i++) {
+            coinManager.RemoveCoinFromPile();
+        }
 		balance -= amount;
-	}
+    }
 
 	private void OnBalanceSet(int newBalance) {
 		balanceText.text = newBalance.ToString();
@@ -136,6 +148,10 @@ public class PlayerBuildingSystem : MonoBehaviour
 		finalBuilding.transform.position = finalTile.transform.position;
 		finalBuilding.GetComponent<Block>().correspondingTile = finalTile.GetComponent<Tile>();
         finalTile.GetComponent<Tile>().isEmpty = false;
+
+		if(index == 3) {
+			finalBuilding.GetComponent<Rotoballe>().otherShip = GameManager.instance.ships[playerIndex == 0 ? 1 : 0];
+        }
 
         OnBuildFinalFeedbacks(index, finalBuilding);
     }
