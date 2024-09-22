@@ -1,18 +1,19 @@
 // Made with Amplify Shader Editor v1.9.2.2
 // Available at the Unity Asset Store - http://u3d.as/y3X 
-Shader "VFX/HitFlare"
+Shader "VFX/HitParticleShader"
 {
 	Properties
 	{
 		[HideInInspector] _AlphaCutoff("Alpha Cutoff ", Range(0, 1)) = 0.5
 		[HideInInspector] _EmissionColor("Emission Color", Color) = (1,1,1,1)
-		_Shape("Shape", 2D) = "white" {}
-		[KeywordEnum(Red,Green,Blue,Alpha)] _Channel("Channel", Float) = 0
-		_Color("Color", Color) = (0,0,0,0)
+		[Header(Look)][NoScaleOffset][Space(10)]_Shape("Shape", 2D) = "white" {}
+		_Color("Color", Color) = (1,1,1,0)
 		_ColorBooster("ColorBooster", Float) = 1
-		_TransparencyFactor("TransparencyFactor", Range( 0 , 1)) = 1
-		_SizeFactor("SizeFactor", Range( 0 , 1)) = 0
-		[HideInInspector] _texcoord( "", 2D ) = "white" {}
+		[Header(Options)][Space(10)][KeywordEnum(Red,Green,Blue,Alpha)] _MaskChannel("Mask Channel", Float) = 0
+		[Toggle]_HorizontalSymmetry("Horizontal Symmetry", Float) = 0
+		[Toggle]_VerticalSymmetry("Vertical Symmetry", Float) = 0
+		_Tiling("Tiling", Vector) = (1,1,0,0)
+		_Offset("Offset", Vector) = (0,0,0,0)
 
 
 		//_TessPhongStrength( "Tess Phong Strength", Range( 0, 1 ) ) = 0.5
@@ -216,16 +217,13 @@ Shader "VFX/HitFlare"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			#define ASE_NEEDS_VERT_POSITION
-			#define ASE_NEEDS_VERT_NORMAL
-			#pragma shader_feature_local _CHANNEL_RED _CHANNEL_GREEN _CHANNEL_BLUE _CHANNEL_ALPHA
+			#pragma shader_feature_local _MASKCHANNEL_RED _MASKCHANNEL_GREEN _MASKCHANNEL_BLUE _MASKCHANNEL_ALPHA
 
 
 			struct VertexInput
 			{
 				float4 positionOS : POSITION;
 				float3 normalOS : NORMAL;
-				float4 ase_tangent : TANGENT;
 				float4 ase_texcoord : TEXCOORD0;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
@@ -249,10 +247,11 @@ Shader "VFX/HitFlare"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _Color;
-			float4 _Shape_ST;
-			float _SizeFactor;
+			float2 _Tiling;
+			float2 _Offset;
 			float _ColorBooster;
-			float _TransparencyFactor;
+			float _HorizontalSymmetry;
+			float _VerticalSymmetry;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -274,20 +273,6 @@ Shader "VFX/HitFlare"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				//Calculate new billboard vertex position and normal;
-				float3 upCamVec = normalize ( UNITY_MATRIX_V._m10_m11_m12 );
-				float3 forwardCamVec = -normalize ( UNITY_MATRIX_V._m20_m21_m22 );
-				float3 rightCamVec = normalize( UNITY_MATRIX_V._m00_m01_m02 );
-				float4x4 rotationCamMatrix = float4x4( rightCamVec, 0, upCamVec, 0, forwardCamVec, 0, 0, 0, 0, 1 );
-				v.normalOS = normalize( mul( float4( v.normalOS , 0 ), rotationCamMatrix )).xyz;
-				v.ase_tangent.xyz = normalize( mul( float4( v.ase_tangent.xyz , 0 ), rotationCamMatrix )).xyz;
-				v.positionOS.x *= length( GetObjectToWorldMatrix()._m00_m10_m20 );
-				v.positionOS.y *= length( GetObjectToWorldMatrix()._m01_m11_m21 );
-				v.positionOS.z *= length( GetObjectToWorldMatrix()._m02_m12_m22 );
-				v.positionOS = mul( v.positionOS, rotationCamMatrix );
-				v.positionOS.xyz += GetObjectToWorldMatrix()._m03_m13_m23;
-				//Need to nullify rotation inserted by generated surface shader;
-				v.positionOS = mul( GetWorldToObjectMatrix(), v.positionOS );
 				o.ase_texcoord3.xy = v.ase_texcoord.xy;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
@@ -299,7 +284,7 @@ Shader "VFX/HitFlare"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( ( v.positionOS.xyz * _SizeFactor ) + 0 );
+				float3 vertexValue = defaultVertexValue;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -337,7 +322,6 @@ Shader "VFX/HitFlare"
 			{
 				float4 vertex : INTERNALTESSPOS;
 				float3 normalOS : NORMAL;
-				float4 ase_tangent : TANGENT;
 				float4 ase_texcoord : TEXCOORD0;
 
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -356,7 +340,6 @@ Shader "VFX/HitFlare"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				o.vertex = v.positionOS;
 				o.normalOS = v.normalOS;
-				o.ase_tangent = v.ase_tangent;
 				o.ase_texcoord = v.ase_texcoord;
 				return o;
 			}
@@ -396,7 +379,6 @@ Shader "VFX/HitFlare"
 				VertexInput o = (VertexInput) 0;
 				o.positionOS = patch[0].vertex * bary.x + patch[1].vertex * bary.y + patch[2].vertex * bary.z;
 				o.normalOS = patch[0].normalOS * bary.x + patch[1].normalOS * bary.y + patch[2].normalOS * bary.z;
-				o.ase_tangent = patch[0].ase_tangent * bary.x + patch[1].ase_tangent * bary.y + patch[2].ase_tangent * bary.z;
 				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
 				#if defined(ASE_PHONG_TESSELLATION)
 				float3 pp[3];
@@ -438,24 +420,24 @@ Shader "VFX/HitFlare"
 					#endif
 				#endif
 
-				float2 uv_Shape = IN.ase_texcoord3.xy * _Shape_ST.xy + _Shape_ST.zw;
-				float4 tex2DNode10 = tex2D( _Shape, uv_Shape );
-				#if defined(_CHANNEL_RED)
-				float staticSwitch11 = tex2DNode10.r;
-				#elif defined(_CHANNEL_GREEN)
-				float staticSwitch11 = tex2DNode10.g;
-				#elif defined(_CHANNEL_BLUE)
-				float staticSwitch11 = tex2DNode10.b;
-				#elif defined(_CHANNEL_ALPHA)
-				float staticSwitch11 = tex2DNode10.a;
+				float2 appendResult23 = (float2((( _HorizontalSymmetry )?( ( 1.0 - IN.ase_texcoord3.xy.x ) ):( IN.ase_texcoord3.xy.x )) , (( _VerticalSymmetry )?( ( 1.0 - IN.ase_texcoord3.xy.y ) ):( IN.ase_texcoord3.xy.y ))));
+				float4 tex2DNode10 = tex2D( _Shape, ( ( appendResult23 * _Tiling ) + _Offset ) );
+				#if defined(_MASKCHANNEL_RED)
+				float staticSwitch12 = tex2DNode10.r;
+				#elif defined(_MASKCHANNEL_GREEN)
+				float staticSwitch12 = tex2DNode10.g;
+				#elif defined(_MASKCHANNEL_BLUE)
+				float staticSwitch12 = tex2DNode10.b;
+				#elif defined(_MASKCHANNEL_ALPHA)
+				float staticSwitch12 = tex2DNode10.a;
 				#else
-				float staticSwitch11 = tex2DNode10.r;
+				float staticSwitch12 = tex2DNode10.r;
 				#endif
 				
 				float3 BakedAlbedo = 0;
 				float3 BakedEmission = 0;
 				float3 Color = ( _Color * _ColorBooster ).rgb;
-				float Alpha = ( staticSwitch11 * _TransparencyFactor );
+				float Alpha = staticSwitch12;
 				float AlphaClipThreshold = 0.5;
 				float AlphaClipThresholdShadow = 0.5;
 
@@ -527,16 +509,13 @@ Shader "VFX/HitFlare"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			#define ASE_NEEDS_VERT_POSITION
-			#define ASE_NEEDS_VERT_NORMAL
-			#pragma shader_feature_local _CHANNEL_RED _CHANNEL_GREEN _CHANNEL_BLUE _CHANNEL_ALPHA
+			#pragma shader_feature_local _MASKCHANNEL_RED _MASKCHANNEL_GREEN _MASKCHANNEL_BLUE _MASKCHANNEL_ALPHA
 
 
 			struct VertexInput
 			{
 				float4 positionOS : POSITION;
 				float3 normalOS : NORMAL;
-				float4 ase_tangent : TANGENT;
 				float4 ase_texcoord : TEXCOORD0;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
@@ -557,10 +536,11 @@ Shader "VFX/HitFlare"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _Color;
-			float4 _Shape_ST;
-			float _SizeFactor;
+			float2 _Tiling;
+			float2 _Offset;
 			float _ColorBooster;
-			float _TransparencyFactor;
+			float _HorizontalSymmetry;
+			float _VerticalSymmetry;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -585,20 +565,6 @@ Shader "VFX/HitFlare"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO( o );
 
-				//Calculate new billboard vertex position and normal;
-				float3 upCamVec = normalize ( UNITY_MATRIX_V._m10_m11_m12 );
-				float3 forwardCamVec = -normalize ( UNITY_MATRIX_V._m20_m21_m22 );
-				float3 rightCamVec = normalize( UNITY_MATRIX_V._m00_m01_m02 );
-				float4x4 rotationCamMatrix = float4x4( rightCamVec, 0, upCamVec, 0, forwardCamVec, 0, 0, 0, 0, 1 );
-				v.normalOS = normalize( mul( float4( v.normalOS , 0 ), rotationCamMatrix )).xyz;
-				v.ase_tangent.xyz = normalize( mul( float4( v.ase_tangent.xyz , 0 ), rotationCamMatrix )).xyz;
-				v.positionOS.x *= length( GetObjectToWorldMatrix()._m00_m10_m20 );
-				v.positionOS.y *= length( GetObjectToWorldMatrix()._m01_m11_m21 );
-				v.positionOS.z *= length( GetObjectToWorldMatrix()._m02_m12_m22 );
-				v.positionOS = mul( v.positionOS, rotationCamMatrix );
-				v.positionOS.xyz += GetObjectToWorldMatrix()._m03_m13_m23;
-				//Need to nullify rotation inserted by generated surface shader;
-				v.positionOS = mul( GetWorldToObjectMatrix(), v.positionOS );
 				o.ase_texcoord2.xy = v.ase_texcoord.xy;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
@@ -610,7 +576,7 @@ Shader "VFX/HitFlare"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( ( v.positionOS.xyz * _SizeFactor ) + 0 );
+				float3 vertexValue = defaultVertexValue;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -659,7 +625,6 @@ Shader "VFX/HitFlare"
 			{
 				float4 vertex : INTERNALTESSPOS;
 				float3 normalOS : NORMAL;
-				float4 ase_tangent : TANGENT;
 				float4 ase_texcoord : TEXCOORD0;
 
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -678,7 +643,6 @@ Shader "VFX/HitFlare"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				o.vertex = v.positionOS;
 				o.normalOS = v.normalOS;
-				o.ase_tangent = v.ase_tangent;
 				o.ase_texcoord = v.ase_texcoord;
 				return o;
 			}
@@ -718,7 +682,6 @@ Shader "VFX/HitFlare"
 				VertexInput o = (VertexInput) 0;
 				o.positionOS = patch[0].vertex * bary.x + patch[1].vertex * bary.y + patch[2].vertex * bary.z;
 				o.normalOS = patch[0].normalOS * bary.x + patch[1].normalOS * bary.y + patch[2].normalOS * bary.z;
-				o.ase_tangent = patch[0].ase_tangent * bary.x + patch[1].ase_tangent * bary.y + patch[2].ase_tangent * bary.z;
 				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
 				#if defined(ASE_PHONG_TESSELLATION)
 				float3 pp[3];
@@ -756,22 +719,22 @@ Shader "VFX/HitFlare"
 					#endif
 				#endif
 
-				float2 uv_Shape = IN.ase_texcoord2.xy * _Shape_ST.xy + _Shape_ST.zw;
-				float4 tex2DNode10 = tex2D( _Shape, uv_Shape );
-				#if defined(_CHANNEL_RED)
-				float staticSwitch11 = tex2DNode10.r;
-				#elif defined(_CHANNEL_GREEN)
-				float staticSwitch11 = tex2DNode10.g;
-				#elif defined(_CHANNEL_BLUE)
-				float staticSwitch11 = tex2DNode10.b;
-				#elif defined(_CHANNEL_ALPHA)
-				float staticSwitch11 = tex2DNode10.a;
+				float2 appendResult23 = (float2((( _HorizontalSymmetry )?( ( 1.0 - IN.ase_texcoord2.xy.x ) ):( IN.ase_texcoord2.xy.x )) , (( _VerticalSymmetry )?( ( 1.0 - IN.ase_texcoord2.xy.y ) ):( IN.ase_texcoord2.xy.y ))));
+				float4 tex2DNode10 = tex2D( _Shape, ( ( appendResult23 * _Tiling ) + _Offset ) );
+				#if defined(_MASKCHANNEL_RED)
+				float staticSwitch12 = tex2DNode10.r;
+				#elif defined(_MASKCHANNEL_GREEN)
+				float staticSwitch12 = tex2DNode10.g;
+				#elif defined(_MASKCHANNEL_BLUE)
+				float staticSwitch12 = tex2DNode10.b;
+				#elif defined(_MASKCHANNEL_ALPHA)
+				float staticSwitch12 = tex2DNode10.a;
 				#else
-				float staticSwitch11 = tex2DNode10.r;
+				float staticSwitch12 = tex2DNode10.r;
 				#endif
 				
 
-				float Alpha = ( staticSwitch11 * _TransparencyFactor );
+				float Alpha = staticSwitch12;
 				float AlphaClipThreshold = 0.5;
 				float AlphaClipThresholdShadow = 0.5;
 
@@ -825,16 +788,13 @@ Shader "VFX/HitFlare"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			#define ASE_NEEDS_VERT_POSITION
-			#define ASE_NEEDS_VERT_NORMAL
-			#pragma shader_feature_local _CHANNEL_RED _CHANNEL_GREEN _CHANNEL_BLUE _CHANNEL_ALPHA
+			#pragma shader_feature_local _MASKCHANNEL_RED _MASKCHANNEL_GREEN _MASKCHANNEL_BLUE _MASKCHANNEL_ALPHA
 
 
 			struct VertexInput
 			{
 				float4 positionOS : POSITION;
 				float3 normalOS : NORMAL;
-				float4 ase_tangent : TANGENT;
 				float4 ase_texcoord : TEXCOORD0;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
@@ -855,10 +815,11 @@ Shader "VFX/HitFlare"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _Color;
-			float4 _Shape_ST;
-			float _SizeFactor;
+			float2 _Tiling;
+			float2 _Offset;
 			float _ColorBooster;
-			float _TransparencyFactor;
+			float _HorizontalSymmetry;
+			float _VerticalSymmetry;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -880,20 +841,6 @@ Shader "VFX/HitFlare"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				//Calculate new billboard vertex position and normal;
-				float3 upCamVec = normalize ( UNITY_MATRIX_V._m10_m11_m12 );
-				float3 forwardCamVec = -normalize ( UNITY_MATRIX_V._m20_m21_m22 );
-				float3 rightCamVec = normalize( UNITY_MATRIX_V._m00_m01_m02 );
-				float4x4 rotationCamMatrix = float4x4( rightCamVec, 0, upCamVec, 0, forwardCamVec, 0, 0, 0, 0, 1 );
-				v.normalOS = normalize( mul( float4( v.normalOS , 0 ), rotationCamMatrix )).xyz;
-				v.ase_tangent.xyz = normalize( mul( float4( v.ase_tangent.xyz , 0 ), rotationCamMatrix )).xyz;
-				v.positionOS.x *= length( GetObjectToWorldMatrix()._m00_m10_m20 );
-				v.positionOS.y *= length( GetObjectToWorldMatrix()._m01_m11_m21 );
-				v.positionOS.z *= length( GetObjectToWorldMatrix()._m02_m12_m22 );
-				v.positionOS = mul( v.positionOS, rotationCamMatrix );
-				v.positionOS.xyz += GetObjectToWorldMatrix()._m03_m13_m23;
-				//Need to nullify rotation inserted by generated surface shader;
-				v.positionOS = mul( GetWorldToObjectMatrix(), v.positionOS );
 				o.ase_texcoord2.xy = v.ase_texcoord.xy;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
@@ -905,7 +852,7 @@ Shader "VFX/HitFlare"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( ( v.positionOS.xyz * _SizeFactor ) + 0 );
+				float3 vertexValue = defaultVertexValue;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -937,7 +884,6 @@ Shader "VFX/HitFlare"
 			{
 				float4 vertex : INTERNALTESSPOS;
 				float3 normalOS : NORMAL;
-				float4 ase_tangent : TANGENT;
 				float4 ase_texcoord : TEXCOORD0;
 
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -956,7 +902,6 @@ Shader "VFX/HitFlare"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				o.vertex = v.positionOS;
 				o.normalOS = v.normalOS;
-				o.ase_tangent = v.ase_tangent;
 				o.ase_texcoord = v.ase_texcoord;
 				return o;
 			}
@@ -996,7 +941,6 @@ Shader "VFX/HitFlare"
 				VertexInput o = (VertexInput) 0;
 				o.positionOS = patch[0].vertex * bary.x + patch[1].vertex * bary.y + patch[2].vertex * bary.z;
 				o.normalOS = patch[0].normalOS * bary.x + patch[1].normalOS * bary.y + patch[2].normalOS * bary.z;
-				o.ase_tangent = patch[0].ase_tangent * bary.x + patch[1].ase_tangent * bary.y + patch[2].ase_tangent * bary.z;
 				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
 				#if defined(ASE_PHONG_TESSELLATION)
 				float3 pp[3];
@@ -1034,22 +978,22 @@ Shader "VFX/HitFlare"
 					#endif
 				#endif
 
-				float2 uv_Shape = IN.ase_texcoord2.xy * _Shape_ST.xy + _Shape_ST.zw;
-				float4 tex2DNode10 = tex2D( _Shape, uv_Shape );
-				#if defined(_CHANNEL_RED)
-				float staticSwitch11 = tex2DNode10.r;
-				#elif defined(_CHANNEL_GREEN)
-				float staticSwitch11 = tex2DNode10.g;
-				#elif defined(_CHANNEL_BLUE)
-				float staticSwitch11 = tex2DNode10.b;
-				#elif defined(_CHANNEL_ALPHA)
-				float staticSwitch11 = tex2DNode10.a;
+				float2 appendResult23 = (float2((( _HorizontalSymmetry )?( ( 1.0 - IN.ase_texcoord2.xy.x ) ):( IN.ase_texcoord2.xy.x )) , (( _VerticalSymmetry )?( ( 1.0 - IN.ase_texcoord2.xy.y ) ):( IN.ase_texcoord2.xy.y ))));
+				float4 tex2DNode10 = tex2D( _Shape, ( ( appendResult23 * _Tiling ) + _Offset ) );
+				#if defined(_MASKCHANNEL_RED)
+				float staticSwitch12 = tex2DNode10.r;
+				#elif defined(_MASKCHANNEL_GREEN)
+				float staticSwitch12 = tex2DNode10.g;
+				#elif defined(_MASKCHANNEL_BLUE)
+				float staticSwitch12 = tex2DNode10.b;
+				#elif defined(_MASKCHANNEL_ALPHA)
+				float staticSwitch12 = tex2DNode10.a;
 				#else
-				float staticSwitch11 = tex2DNode10.r;
+				float staticSwitch12 = tex2DNode10.r;
 				#endif
 				
 
-				float Alpha = ( staticSwitch11 * _TransparencyFactor );
+				float Alpha = staticSwitch12;
 				float AlphaClipThreshold = 0.5;
 
 				#ifdef _ALPHATEST_ON
@@ -1097,16 +1041,13 @@ Shader "VFX/HitFlare"
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
 			#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
-			#define ASE_NEEDS_VERT_POSITION
-			#define ASE_NEEDS_VERT_NORMAL
-			#pragma shader_feature_local _CHANNEL_RED _CHANNEL_GREEN _CHANNEL_BLUE _CHANNEL_ALPHA
+			#pragma shader_feature_local _MASKCHANNEL_RED _MASKCHANNEL_GREEN _MASKCHANNEL_BLUE _MASKCHANNEL_ALPHA
 
 
 			struct VertexInput
 			{
 				float4 positionOS : POSITION;
 				float3 normalOS : NORMAL;
-				float4 ase_tangent : TANGENT;
 				float4 ase_texcoord : TEXCOORD0;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
@@ -1121,10 +1062,11 @@ Shader "VFX/HitFlare"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _Color;
-			float4 _Shape_ST;
-			float _SizeFactor;
+			float2 _Tiling;
+			float2 _Offset;
 			float _ColorBooster;
-			float _TransparencyFactor;
+			float _HorizontalSymmetry;
+			float _VerticalSymmetry;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -1157,20 +1099,6 @@ Shader "VFX/HitFlare"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				//Calculate new billboard vertex position and normal;
-				float3 upCamVec = normalize ( UNITY_MATRIX_V._m10_m11_m12 );
-				float3 forwardCamVec = -normalize ( UNITY_MATRIX_V._m20_m21_m22 );
-				float3 rightCamVec = normalize( UNITY_MATRIX_V._m00_m01_m02 );
-				float4x4 rotationCamMatrix = float4x4( rightCamVec, 0, upCamVec, 0, forwardCamVec, 0, 0, 0, 0, 1 );
-				v.normalOS = normalize( mul( float4( v.normalOS , 0 ), rotationCamMatrix )).xyz;
-				v.ase_tangent.xyz = normalize( mul( float4( v.ase_tangent.xyz , 0 ), rotationCamMatrix )).xyz;
-				v.positionOS.x *= length( GetObjectToWorldMatrix()._m00_m10_m20 );
-				v.positionOS.y *= length( GetObjectToWorldMatrix()._m01_m11_m21 );
-				v.positionOS.z *= length( GetObjectToWorldMatrix()._m02_m12_m22 );
-				v.positionOS = mul( v.positionOS, rotationCamMatrix );
-				v.positionOS.xyz += GetObjectToWorldMatrix()._m03_m13_m23;
-				//Need to nullify rotation inserted by generated surface shader;
-				v.positionOS = mul( GetWorldToObjectMatrix(), v.positionOS );
 				o.ase_texcoord.xy = v.ase_texcoord.xy;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
@@ -1182,7 +1110,7 @@ Shader "VFX/HitFlare"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( ( v.positionOS.xyz * _SizeFactor ) + 0 );
+				float3 vertexValue = defaultVertexValue;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -1204,7 +1132,6 @@ Shader "VFX/HitFlare"
 			{
 				float4 vertex : INTERNALTESSPOS;
 				float3 normalOS : NORMAL;
-				float4 ase_tangent : TANGENT;
 				float4 ase_texcoord : TEXCOORD0;
 
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -1223,7 +1150,6 @@ Shader "VFX/HitFlare"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				o.vertex = v.positionOS;
 				o.normalOS = v.normalOS;
-				o.ase_tangent = v.ase_tangent;
 				o.ase_texcoord = v.ase_texcoord;
 				return o;
 			}
@@ -1263,7 +1189,6 @@ Shader "VFX/HitFlare"
 				VertexInput o = (VertexInput) 0;
 				o.positionOS = patch[0].vertex * bary.x + patch[1].vertex * bary.y + patch[2].vertex * bary.z;
 				o.normalOS = patch[0].normalOS * bary.x + patch[1].normalOS * bary.y + patch[2].normalOS * bary.z;
-				o.ase_tangent = patch[0].ase_tangent * bary.x + patch[1].ase_tangent * bary.y + patch[2].ase_tangent * bary.z;
 				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
 				#if defined(ASE_PHONG_TESSELLATION)
 				float3 pp[3];
@@ -1286,22 +1211,22 @@ Shader "VFX/HitFlare"
 			{
 				SurfaceDescription surfaceDescription = (SurfaceDescription)0;
 
-				float2 uv_Shape = IN.ase_texcoord.xy * _Shape_ST.xy + _Shape_ST.zw;
-				float4 tex2DNode10 = tex2D( _Shape, uv_Shape );
-				#if defined(_CHANNEL_RED)
-				float staticSwitch11 = tex2DNode10.r;
-				#elif defined(_CHANNEL_GREEN)
-				float staticSwitch11 = tex2DNode10.g;
-				#elif defined(_CHANNEL_BLUE)
-				float staticSwitch11 = tex2DNode10.b;
-				#elif defined(_CHANNEL_ALPHA)
-				float staticSwitch11 = tex2DNode10.a;
+				float2 appendResult23 = (float2((( _HorizontalSymmetry )?( ( 1.0 - IN.ase_texcoord.xy.x ) ):( IN.ase_texcoord.xy.x )) , (( _VerticalSymmetry )?( ( 1.0 - IN.ase_texcoord.xy.y ) ):( IN.ase_texcoord.xy.y ))));
+				float4 tex2DNode10 = tex2D( _Shape, ( ( appendResult23 * _Tiling ) + _Offset ) );
+				#if defined(_MASKCHANNEL_RED)
+				float staticSwitch12 = tex2DNode10.r;
+				#elif defined(_MASKCHANNEL_GREEN)
+				float staticSwitch12 = tex2DNode10.g;
+				#elif defined(_MASKCHANNEL_BLUE)
+				float staticSwitch12 = tex2DNode10.b;
+				#elif defined(_MASKCHANNEL_ALPHA)
+				float staticSwitch12 = tex2DNode10.a;
 				#else
-				float staticSwitch11 = tex2DNode10.r;
+				float staticSwitch12 = tex2DNode10.r;
 				#endif
 				
 
-				surfaceDescription.Alpha = ( staticSwitch11 * _TransparencyFactor );
+				surfaceDescription.Alpha = staticSwitch12;
 				surfaceDescription.AlphaClipThreshold = 0.5;
 
 				#if _ALPHATEST_ON
@@ -1355,16 +1280,13 @@ Shader "VFX/HitFlare"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			#define ASE_NEEDS_VERT_POSITION
-			#define ASE_NEEDS_VERT_NORMAL
-			#pragma shader_feature_local _CHANNEL_RED _CHANNEL_GREEN _CHANNEL_BLUE _CHANNEL_ALPHA
+			#pragma shader_feature_local _MASKCHANNEL_RED _MASKCHANNEL_GREEN _MASKCHANNEL_BLUE _MASKCHANNEL_ALPHA
 
 
 			struct VertexInput
 			{
 				float4 positionOS : POSITION;
 				float3 normalOS : NORMAL;
-				float4 ase_tangent : TANGENT;
 				float4 ase_texcoord : TEXCOORD0;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
@@ -1379,10 +1301,11 @@ Shader "VFX/HitFlare"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _Color;
-			float4 _Shape_ST;
-			float _SizeFactor;
+			float2 _Tiling;
+			float2 _Offset;
 			float _ColorBooster;
-			float _TransparencyFactor;
+			float _HorizontalSymmetry;
+			float _VerticalSymmetry;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -1414,20 +1337,6 @@ Shader "VFX/HitFlare"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				//Calculate new billboard vertex position and normal;
-				float3 upCamVec = normalize ( UNITY_MATRIX_V._m10_m11_m12 );
-				float3 forwardCamVec = -normalize ( UNITY_MATRIX_V._m20_m21_m22 );
-				float3 rightCamVec = normalize( UNITY_MATRIX_V._m00_m01_m02 );
-				float4x4 rotationCamMatrix = float4x4( rightCamVec, 0, upCamVec, 0, forwardCamVec, 0, 0, 0, 0, 1 );
-				v.normalOS = normalize( mul( float4( v.normalOS , 0 ), rotationCamMatrix )).xyz;
-				v.ase_tangent.xyz = normalize( mul( float4( v.ase_tangent.xyz , 0 ), rotationCamMatrix )).xyz;
-				v.positionOS.x *= length( GetObjectToWorldMatrix()._m00_m10_m20 );
-				v.positionOS.y *= length( GetObjectToWorldMatrix()._m01_m11_m21 );
-				v.positionOS.z *= length( GetObjectToWorldMatrix()._m02_m12_m22 );
-				v.positionOS = mul( v.positionOS, rotationCamMatrix );
-				v.positionOS.xyz += GetObjectToWorldMatrix()._m03_m13_m23;
-				//Need to nullify rotation inserted by generated surface shader;
-				v.positionOS = mul( GetWorldToObjectMatrix(), v.positionOS );
 				o.ase_texcoord.xy = v.ase_texcoord.xy;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
@@ -1439,7 +1348,7 @@ Shader "VFX/HitFlare"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( ( v.positionOS.xyz * _SizeFactor ) + 0 );
+				float3 vertexValue = defaultVertexValue;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -1459,7 +1368,6 @@ Shader "VFX/HitFlare"
 			{
 				float4 vertex : INTERNALTESSPOS;
 				float3 normalOS : NORMAL;
-				float4 ase_tangent : TANGENT;
 				float4 ase_texcoord : TEXCOORD0;
 
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -1478,7 +1386,6 @@ Shader "VFX/HitFlare"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				o.vertex = v.positionOS;
 				o.normalOS = v.normalOS;
-				o.ase_tangent = v.ase_tangent;
 				o.ase_texcoord = v.ase_texcoord;
 				return o;
 			}
@@ -1518,7 +1425,6 @@ Shader "VFX/HitFlare"
 				VertexInput o = (VertexInput) 0;
 				o.positionOS = patch[0].vertex * bary.x + patch[1].vertex * bary.y + patch[2].vertex * bary.z;
 				o.normalOS = patch[0].normalOS * bary.x + patch[1].normalOS * bary.y + patch[2].normalOS * bary.z;
-				o.ase_tangent = patch[0].ase_tangent * bary.x + patch[1].ase_tangent * bary.y + patch[2].ase_tangent * bary.z;
 				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
 				#if defined(ASE_PHONG_TESSELLATION)
 				float3 pp[3];
@@ -1541,22 +1447,22 @@ Shader "VFX/HitFlare"
 			{
 				SurfaceDescription surfaceDescription = (SurfaceDescription)0;
 
-				float2 uv_Shape = IN.ase_texcoord.xy * _Shape_ST.xy + _Shape_ST.zw;
-				float4 tex2DNode10 = tex2D( _Shape, uv_Shape );
-				#if defined(_CHANNEL_RED)
-				float staticSwitch11 = tex2DNode10.r;
-				#elif defined(_CHANNEL_GREEN)
-				float staticSwitch11 = tex2DNode10.g;
-				#elif defined(_CHANNEL_BLUE)
-				float staticSwitch11 = tex2DNode10.b;
-				#elif defined(_CHANNEL_ALPHA)
-				float staticSwitch11 = tex2DNode10.a;
+				float2 appendResult23 = (float2((( _HorizontalSymmetry )?( ( 1.0 - IN.ase_texcoord.xy.x ) ):( IN.ase_texcoord.xy.x )) , (( _VerticalSymmetry )?( ( 1.0 - IN.ase_texcoord.xy.y ) ):( IN.ase_texcoord.xy.y ))));
+				float4 tex2DNode10 = tex2D( _Shape, ( ( appendResult23 * _Tiling ) + _Offset ) );
+				#if defined(_MASKCHANNEL_RED)
+				float staticSwitch12 = tex2DNode10.r;
+				#elif defined(_MASKCHANNEL_GREEN)
+				float staticSwitch12 = tex2DNode10.g;
+				#elif defined(_MASKCHANNEL_BLUE)
+				float staticSwitch12 = tex2DNode10.b;
+				#elif defined(_MASKCHANNEL_ALPHA)
+				float staticSwitch12 = tex2DNode10.a;
 				#else
-				float staticSwitch11 = tex2DNode10.r;
+				float staticSwitch12 = tex2DNode10.r;
 				#endif
 				
 
-				surfaceDescription.Alpha = ( staticSwitch11 * _TransparencyFactor );
+				surfaceDescription.Alpha = staticSwitch12;
 				surfaceDescription.AlphaClipThreshold = 0.5;
 
 				#if _ALPHATEST_ON
@@ -1620,16 +1526,13 @@ Shader "VFX/HitFlare"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
             #endif
 
-			#define ASE_NEEDS_VERT_POSITION
-			#define ASE_NEEDS_VERT_NORMAL
-			#pragma shader_feature_local _CHANNEL_RED _CHANNEL_GREEN _CHANNEL_BLUE _CHANNEL_ALPHA
+			#pragma shader_feature_local _MASKCHANNEL_RED _MASKCHANNEL_GREEN _MASKCHANNEL_BLUE _MASKCHANNEL_ALPHA
 
 
 			struct VertexInput
 			{
 				float4 positionOS : POSITION;
 				float3 normalOS : NORMAL;
-				float4 ase_tangent : TANGENT;
 				float4 ase_texcoord : TEXCOORD0;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
@@ -1645,10 +1548,11 @@ Shader "VFX/HitFlare"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _Color;
-			float4 _Shape_ST;
-			float _SizeFactor;
+			float2 _Tiling;
+			float2 _Offset;
 			float _ColorBooster;
-			float _TransparencyFactor;
+			float _HorizontalSymmetry;
+			float _VerticalSymmetry;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -1678,20 +1582,6 @@ Shader "VFX/HitFlare"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				//Calculate new billboard vertex position and normal;
-				float3 upCamVec = normalize ( UNITY_MATRIX_V._m10_m11_m12 );
-				float3 forwardCamVec = -normalize ( UNITY_MATRIX_V._m20_m21_m22 );
-				float3 rightCamVec = normalize( UNITY_MATRIX_V._m00_m01_m02 );
-				float4x4 rotationCamMatrix = float4x4( rightCamVec, 0, upCamVec, 0, forwardCamVec, 0, 0, 0, 0, 1 );
-				v.normalOS = normalize( mul( float4( v.normalOS , 0 ), rotationCamMatrix )).xyz;
-				v.ase_tangent.xyz = normalize( mul( float4( v.ase_tangent.xyz , 0 ), rotationCamMatrix )).xyz;
-				v.positionOS.x *= length( GetObjectToWorldMatrix()._m00_m10_m20 );
-				v.positionOS.y *= length( GetObjectToWorldMatrix()._m01_m11_m21 );
-				v.positionOS.z *= length( GetObjectToWorldMatrix()._m02_m12_m22 );
-				v.positionOS = mul( v.positionOS, rotationCamMatrix );
-				v.positionOS.xyz += GetObjectToWorldMatrix()._m03_m13_m23;
-				//Need to nullify rotation inserted by generated surface shader;
-				v.positionOS = mul( GetWorldToObjectMatrix(), v.positionOS );
 				o.ase_texcoord1.xy = v.ase_texcoord.xy;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
@@ -1703,7 +1593,7 @@ Shader "VFX/HitFlare"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( ( v.positionOS.xyz * _SizeFactor ) + 0 );
+				float3 vertexValue = defaultVertexValue;
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -1727,7 +1617,6 @@ Shader "VFX/HitFlare"
 			{
 				float4 vertex : INTERNALTESSPOS;
 				float3 normalOS : NORMAL;
-				float4 ase_tangent : TANGENT;
 				float4 ase_texcoord : TEXCOORD0;
 
 				UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -1746,7 +1635,6 @@ Shader "VFX/HitFlare"
 				UNITY_TRANSFER_INSTANCE_ID(v, o);
 				o.vertex = v.positionOS;
 				o.normalOS = v.normalOS;
-				o.ase_tangent = v.ase_tangent;
 				o.ase_texcoord = v.ase_texcoord;
 				return o;
 			}
@@ -1786,7 +1674,6 @@ Shader "VFX/HitFlare"
 				VertexInput o = (VertexInput) 0;
 				o.positionOS = patch[0].vertex * bary.x + patch[1].vertex * bary.y + patch[2].vertex * bary.z;
 				o.normalOS = patch[0].normalOS * bary.x + patch[1].normalOS * bary.y + patch[2].normalOS * bary.z;
-				o.ase_tangent = patch[0].ase_tangent * bary.x + patch[1].ase_tangent * bary.y + patch[2].ase_tangent * bary.z;
 				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
 				#if defined(ASE_PHONG_TESSELLATION)
 				float3 pp[3];
@@ -1814,22 +1701,22 @@ Shader "VFX/HitFlare"
 			{
 				SurfaceDescription surfaceDescription = (SurfaceDescription)0;
 
-				float2 uv_Shape = IN.ase_texcoord1.xy * _Shape_ST.xy + _Shape_ST.zw;
-				float4 tex2DNode10 = tex2D( _Shape, uv_Shape );
-				#if defined(_CHANNEL_RED)
-				float staticSwitch11 = tex2DNode10.r;
-				#elif defined(_CHANNEL_GREEN)
-				float staticSwitch11 = tex2DNode10.g;
-				#elif defined(_CHANNEL_BLUE)
-				float staticSwitch11 = tex2DNode10.b;
-				#elif defined(_CHANNEL_ALPHA)
-				float staticSwitch11 = tex2DNode10.a;
+				float2 appendResult23 = (float2((( _HorizontalSymmetry )?( ( 1.0 - IN.ase_texcoord1.xy.x ) ):( IN.ase_texcoord1.xy.x )) , (( _VerticalSymmetry )?( ( 1.0 - IN.ase_texcoord1.xy.y ) ):( IN.ase_texcoord1.xy.y ))));
+				float4 tex2DNode10 = tex2D( _Shape, ( ( appendResult23 * _Tiling ) + _Offset ) );
+				#if defined(_MASKCHANNEL_RED)
+				float staticSwitch12 = tex2DNode10.r;
+				#elif defined(_MASKCHANNEL_GREEN)
+				float staticSwitch12 = tex2DNode10.g;
+				#elif defined(_MASKCHANNEL_BLUE)
+				float staticSwitch12 = tex2DNode10.b;
+				#elif defined(_MASKCHANNEL_ALPHA)
+				float staticSwitch12 = tex2DNode10.a;
 				#else
-				float staticSwitch11 = tex2DNode10.r;
+				float staticSwitch12 = tex2DNode10.r;
 				#endif
 				
 
-				surfaceDescription.Alpha = ( staticSwitch11 * _TransparencyFactor );
+				surfaceDescription.Alpha = staticSwitch12;
 				surfaceDescription.AlphaClipThreshold = 0.5;
 
 				#if _ALPHATEST_ON
@@ -1879,33 +1766,42 @@ Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;6;0,0;Float;False;False;-1;
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;7;0,0;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;1;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;ScenePickingPass;0;7;ScenePickingPass;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=Picking;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;8;0,0;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;1;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;DepthNormals;0;8;DepthNormals;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;False;True;1;LightMode=DepthNormalsOnly;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;9;0,0;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;1;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;DepthNormalsOnly;0;9;DepthNormalsOnly;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;False;True;1;LightMode=DepthNormalsOnly;False;True;9;d3d11;metal;vulkan;xboxone;xboxseries;playstation;ps4;ps5;switch;0;;0;0;Standard;0;False;0
-Node;AmplifyShaderEditor.ColorNode;12;-1088.747,-397.0187;Inherit;False;Property;_Color;Color;2;0;Create;True;0;0;0;False;0;False;0,0,0,0;0,0,0,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;13;-812.2344,-209.1241;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;FLOAT;0;False;1;COLOR;0
-Node;AmplifyShaderEditor.RangedFloatNode;14;-1046.207,-64.22687;Inherit;False;Property;_ColorBooster;ColorBooster;3;0;Create;True;0;0;0;False;0;False;1;0;0;0;0;1;FLOAT;0
-Node;AmplifyShaderEditor.SamplerNode;10;-1500.287,106.2517;Inherit;True;Property;_Shape;Shape;0;0;Create;True;0;0;0;False;0;False;-1;None;None;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.StaticSwitch;11;-1171.538,128.7554;Inherit;False;Property;_Channel;Channel;1;0;Create;True;0;0;0;False;0;False;0;0;0;True;;KeywordEnum;4;Red;Green;Blue;Alpha;Create;True;True;All;9;1;FLOAT;0;False;0;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;4;FLOAT;0;False;5;FLOAT;0;False;6;FLOAT;0;False;7;FLOAT;0;False;8;FLOAT;0;False;1;FLOAT;0
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;15;-834.5618,277.1413;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT;0;False;1;FLOAT;0
-Node;AmplifyShaderEditor.RangedFloatNode;16;-1400.597,376.7924;Inherit;False;Property;_TransparencyFactor;TransparencyFactor;4;0;Create;True;0;0;0;False;0;False;1;0;0;1;0;1;FLOAT;0
-Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;1;88.39899,477.7756;Float;False;True;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;VFX/HitFlare;2992e84f91cbeb14eab234972e07ea9d;True;Forward;0;1;Forward;8;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Transparent=RenderType;Queue=Transparent=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;True;1;5;False;;10;False;;1;1;False;;10;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;2;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForwardOnly;False;False;0;;0;0;Standard;22;Surface;1;638624429321839522;  Blend;0;0;Two Sided;1;0;Forward Only;0;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;GPU Instancing;1;0;LOD CrossFade;1;0;Built-in Fog;1;0;DOTS Instancing;0;0;Meta Pass;0;0;Extra Pre Pass;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Vertex Position,InvertActionOnDeselection;0;638624429449971637;0;10;False;True;True;True;False;False;True;True;True;False;False;;False;0
-Node;AmplifyShaderEditor.PosVertexDataNode;17;-1328.435,554.4851;Inherit;False;0;0;5;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;18;-952.7834,732.923;Inherit;False;2;2;0;FLOAT3;0,0,0;False;1;FLOAT;0;False;1;FLOAT3;0
-Node;AmplifyShaderEditor.RangedFloatNode;19;-1486.469,780.3939;Inherit;False;Property;_SizeFactor;SizeFactor;5;0;Create;True;0;0;0;False;0;False;0;0;0;1;0;1;FLOAT;0
-Node;AmplifyShaderEditor.SimpleAddOpNode;21;-629.7333,729.8682;Inherit;False;2;2;0;FLOAT3;0,0,0;False;1;FLOAT3;0,0,0;False;1;FLOAT3;0
-Node;AmplifyShaderEditor.BillboardNode;20;-988.4708,883.3483;Inherit;False;Spherical;True;True;0;1;FLOAT3;0
-WireConnection;13;0;12;0
-WireConnection;13;1;14;0
-WireConnection;11;1;10;1
-WireConnection;11;0;10;2
-WireConnection;11;2;10;3
-WireConnection;11;3;10;4
-WireConnection;15;0;11;0
-WireConnection;15;1;16;0
-WireConnection;1;2;13;0
-WireConnection;1;3;15;0
-WireConnection;1;5;21;0
-WireConnection;18;0;17;0
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;1;40.69719,-53.40871;Float;False;True;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;VFX/HitParticleShader;2992e84f91cbeb14eab234972e07ea9d;True;Forward;0;1;Forward;8;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Transparent=RenderType;Queue=Transparent=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;True;1;5;False;;10;False;;1;1;False;;10;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;2;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForwardOnly;False;False;0;;0;0;Standard;22;Surface;1;638626225427302767;  Blend;0;0;Two Sided;1;0;Forward Only;0;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;GPU Instancing;1;0;LOD CrossFade;1;0;Built-in Fog;1;0;DOTS Instancing;0;0;Meta Pass;0;0;Extra Pre Pass;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Vertex Position,InvertActionOnDeselection;0;638626225462110585;0;10;False;True;True;True;False;False;True;True;True;False;False;;False;0
+Node;AmplifyShaderEditor.SimpleMultiplyOpNode;15;-849.7596,-318.4512;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;FLOAT;0;False;1;COLOR;0
+Node;AmplifyShaderEditor.RangedFloatNode;14;-1069.46,-347.0512;Inherit;False;Property;_ColorBooster;ColorBooster;2;0;Create;True;0;0;0;False;0;False;1;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.ColorNode;13;-1104.36,-543.4513;Inherit;False;Property;_Color;Color;1;0;Create;True;0;0;0;False;0;False;1,1,1,0;1,1,1,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.StaticSwitch;12;-720.2824,190.491;Inherit;False;Property;_MaskChannel;Mask Channel;3;0;Create;True;0;0;0;False;2;Header(Options);Space(10);False;0;0;0;True;;KeywordEnum;4;Red;Green;Blue;Alpha;Create;True;True;All;9;1;FLOAT;0;False;0;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;4;FLOAT;0;False;5;FLOAT;0;False;6;FLOAT;0;False;7;FLOAT;0;False;8;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.SamplerNode;10;-1098.758,166.9604;Inherit;True;Property;_Shape;Shape;0;2;[Header];[NoScaleOffset];Create;True;1;Look;0;0;False;1;Space(10);False;-1;None;None;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.OneMinusNode;19;-2948.375,174.7984;Inherit;False;1;0;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.ToggleSwitchNode;18;-2724.375,97.79842;Inherit;False;Property;_HorizontalSymmetry;Horizontal Symmetry;4;0;Create;True;0;0;0;False;0;False;0;True;2;0;FLOAT;0;False;1;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.OneMinusNode;20;-3025.649,430.4717;Inherit;False;1;0;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.ToggleSwitchNode;21;-2696.649,280.4716;Inherit;False;Property;_VerticalSymmetry;Vertical Symmetry;5;0;Create;True;0;0;0;False;0;False;0;True;2;0;FLOAT;0;False;1;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.DynamicAppendNode;23;-2399.649,174.4716;Inherit;False;FLOAT2;4;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;1;FLOAT2;0
+Node;AmplifyShaderEditor.TexCoordVertexDataNode;16;-3542.526,159.4046;Inherit;False;0;2;0;5;FLOAT2;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.SimpleMultiplyOpNode;24;-1966.612,331.8719;Inherit;False;2;2;0;FLOAT2;0,0;False;1;FLOAT2;0,0;False;1;FLOAT2;0
+Node;AmplifyShaderEditor.Vector2Node;25;-2344.444,501.17;Inherit;False;Property;_Tiling;Tiling;6;0;Create;True;0;0;0;False;0;False;1,1;0,0;0;3;FLOAT2;0;FLOAT;1;FLOAT;2
+Node;AmplifyShaderEditor.SimpleAddOpNode;26;-1607.991,332.5123;Inherit;False;2;2;0;FLOAT2;0,0;False;1;FLOAT2;0,0;False;1;FLOAT2;0
+Node;AmplifyShaderEditor.Vector2Node;27;-1878.391,541.8121;Inherit;False;Property;_Offset;Offset;7;0;Create;True;0;0;0;False;0;False;0,0;0,0;0;3;FLOAT2;0;FLOAT;1;FLOAT;2
+WireConnection;1;2;15;0
+WireConnection;1;3;12;0
+WireConnection;15;0;13;0
+WireConnection;15;1;14;0
+WireConnection;12;1;10;1
+WireConnection;12;0;10;2
+WireConnection;12;2;10;3
+WireConnection;12;3;10;4
+WireConnection;10;1;26;0
+WireConnection;19;0;16;1
+WireConnection;18;0;16;1
 WireConnection;18;1;19;0
-WireConnection;21;0;18;0
+WireConnection;20;0;16;2
+WireConnection;21;0;16;2
 WireConnection;21;1;20;0
+WireConnection;23;0;18;0
+WireConnection;23;1;21;0
+WireConnection;24;0;23;0
+WireConnection;24;1;25;0
+WireConnection;26;0;24;0
+WireConnection;26;1;27;0
 ASEEND*/
-//CHKSM=2CF2511FC7901E4DC1284AE48A49B5C354AE366E
+//CHKSM=13751FB8C340E8C56371D98F8EA5A87D7257048E
