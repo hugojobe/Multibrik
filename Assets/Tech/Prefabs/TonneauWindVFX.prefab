@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3789280738283642840}
+  - component: {fileID: 2126029461475104703}
   m_Layer: 0
   m_Name: TonneauWindVFX
   m_TagString: Untagged
@@ -33,6 +34,22 @@ Transform:
   - {fileID: 1095842371720633219}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2126029461475104703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 859970622387363814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28c91ccdd16295846ac77bdca4ce4232, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  particles:
+  - {fileID: 5788376118785142026}
+  - {fileID: 1969977128762334380}
+  start: 0
 --- !u!1 &1893833950842811151
 GameObject:
   m_ObjectHideFlags: 0
@@ -202,8 +219,8 @@ ParticleSystem:
     startSpeed:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 18
-      minScalar: 13
+      scalar: 16
+      minScalar: 9
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -1013,7 +1030,7 @@ ParticleSystem:
       countCurve:
         serializedVersion: 2
         minMaxState: 0
-        scalar: 40
+        scalar: 45
         minScalar: 30
         maxCurve:
           serializedVersion: 2
@@ -1399,9 +1416,9 @@ ParticleSystem:
       maxColor: {r: 1, g: 1, b: 1, a: 1}
       maxGradient:
         serializedVersion: 2
-        key0: {r: 0.9150943, g: 0.81932765, b: 0.7812834, a: 1}
-        key1: {r: 0.8584906, g: 0.6426746, b: 0.5304824, a: 0.24705881}
-        key2: {r: 0, g: 0, b: 0, a: 0}
+        key0: {r: 0.986, g: 0.74984473, b: 0.622166, a: 1}
+        key1: {r: 0.85882354, g: 0.8420671, b: 0.6638706, a: 1}
+        key2: {r: 0, g: 0, b: 0, a: 0.25882354}
         key3: {r: 0, g: 0, b: 0, a: 0}
         key4: {r: 0, g: 0, b: 0, a: 0}
         key5: {r: 0, g: 0, b: 0, a: 0}
@@ -1416,9 +1433,9 @@ ParticleSystem:
         ctime6: 0
         ctime7: 0
         atime0: 0
-        atime1: 26792
-        atime2: 65535
-        atime3: 0
+        atime1: 6554
+        atime2: 28913
+        atime3: 65535
         atime4: 0
         atime5: 0
         atime6: 0
@@ -1426,7 +1443,7 @@ ParticleSystem:
         m_Mode: 0
         m_ColorSpace: 0
         m_NumColorKeys: 2
-        m_NumAlphaKeys: 3
+        m_NumAlphaKeys: 4
       minGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -2667,7 +2684,7 @@ ParticleSystem:
     magnitude:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1.19
+      scalar: 1.21
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -2721,7 +2738,7 @@ ParticleSystem:
     inWorldSpace: 0
     multiplyDragByParticleSize: 1
     multiplyDragByParticleVelocity: 1
-    dampen: 0.35
+    dampen: 0.2
     drag:
       serializedVersion: 2
       minMaxState: 0
@@ -4904,15 +4921,13 @@ ParticleSystemRenderer:
   m_RenderAlignment: 0
   m_Pivot: {x: 0, y: 0, z: 0}
   m_Flip: {x: 0, y: 0, z: 0}
+  m_UseCustomVertexStreams: 0
   m_EnableGPUInstancing: 1
   m_ApplyActiveColorSpace: 1
   m_AllowRoll: 1
   m_FreeformStretching: 0
   m_RotateWithStretchDirection: 1
-  m_UseCustomVertexStreams: 0
   m_VertexStreams: 00010304
-  m_UseCustomTrailVertexStreams: 0
-  m_TrailVertexStreams: 00010304
   m_Mesh: {fileID: 0}
   m_Mesh1: {fileID: 0}
   m_Mesh2: {fileID: 0}
@@ -9792,15 +9807,13 @@ ParticleSystemRenderer:
   m_RenderAlignment: 0
   m_Pivot: {x: 0, y: 0, z: 0}
   m_Flip: {x: 0, y: 0, z: 0}
+  m_UseCustomVertexStreams: 0
   m_EnableGPUInstancing: 1
   m_ApplyActiveColorSpace: 1
   m_AllowRoll: 1
   m_FreeformStretching: 0
   m_RotateWithStretchDirection: 1
-  m_UseCustomVertexStreams: 0
   m_VertexStreams: 00010304
-  m_UseCustomTrailVertexStreams: 0
-  m_TrailVertexStreams: 00010304
   m_Mesh: {fileID: 0}
   m_Mesh1: {fileID: 0}
   m_Mesh2: {fileID: 0}

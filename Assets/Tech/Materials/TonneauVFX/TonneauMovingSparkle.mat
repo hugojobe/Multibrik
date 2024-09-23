@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: TonneauExplosionSparkleParticle
+  m_Name: TonneauMovingSparkle
   m_Shader: {fileID: 4800000, guid: 1257a3e9a3454584b9e096ddde94bd8b, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -45,10 +45,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AberationIntencity: 0.131
+    - _AberationIntencity: 0.147
     - _AlphaCutoff: 0.5
-    - _AlphaPower: 1.59
-    - _ColorIntencity: 12.91
+    - _AlphaPower: 1.48
+    - _ColorIntencity: 6.95
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1

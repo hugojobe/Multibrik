@@ -41,7 +41,7 @@ Material:
     - _BlinkSpeed: 6.6
     - _EnvironmentReflections: 1
     - _Float0: 0.89
-    - _FresnelPower: 1.52
+    - _FresnelPower: 1.2
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
@@ -58,5 +58,7 @@ Material:
     - _TessValue: 16
     m_Colors:
     - _Color: {r: 0.8484781, g: 1.08526, b: 1.9766743, a: 0}
+    - _ColorDown: {r: 0.37766975, g: 0.55694044, b: 1.6637435, a: 0}
+    - _ColorUp: {r: 0.3017248, g: 0.37097317, b: 0.737, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

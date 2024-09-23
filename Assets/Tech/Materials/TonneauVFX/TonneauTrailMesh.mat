@@ -7,12 +7,14 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: TonneauExplosionSparkleParticle
-  m_Shader: {fileID: 4800000, guid: 1257a3e9a3454584b9e096ddde94bd8b, type: 3}
+  m_Name: TonneauTrailMesh
+  m_Shader: {fileID: 4800000, guid: a05a05fd2e4504c4b86d5f24a38197f7, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_ValidKeywords:
+  - _RECEIVE_SHADOWS_OFF
+  m_InvalidKeywords:
+  - _RECEIVESHADOWS_OFF
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -23,11 +25,19 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _Shape:
-        m_Texture: {fileID: 2800000, guid: 502a2537f797d17449235a877344d5be, type: 3}
+    - _DistortionNoise:
+        m_Texture: {fileID: 2800000, guid: d5b1de26e67672c43ba11d4748f46903, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _texcoord:
+    - _Noise:
+        m_Texture: {fileID: 2800000, guid: 547b318a34d7c7e4e92c60bf830a7e69, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Noise1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Noise2:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -45,13 +55,24 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AberationIntencity: 0.131
+    - _AberationIntencity: 0.0084
     - _AlphaCutoff: 0.5
-    - _AlphaPower: 1.59
-    - _ColorIntencity: 12.91
+    - _ColorIntencity: 0.6
+    - _DistortionIntencity: 0.102
+    - _DistortionSpeed: 1.11
+    - _FresnelPower: 0.62
+    - _GradientSmooth: 2.3
+    - _NoiseSmooth: 1
+    - _NoiseSpeed: 0.76
+    - _OffsetIntencity: 0.177
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _ReceiveShadows: 1
+    - _ReceiveShadows: 0
+    - _StartGradientSmooth: 16.32
+    - _StartSmoothAdd: 0.806
+    - _TessValue: 8
     m_Colors:
+    - _ColorA: {r: 9.128569, g: 1.6727741, b: 1.051458, a: 0}
+    - _ColorB: {r: 1.8352317, g: 1.6142353, b: 0.7590748, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

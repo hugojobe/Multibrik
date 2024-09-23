@@ -45,13 +45,14 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AberationIntencity: 0.026
+    - _AberationIntencity: 0.045
+    - _AberationIntencity1: 0.026
     - _AlphaCutoff: 0.5
-    - _AlphaPower: 1.84
-    - _ColorIntencity: 0.59
-    - _DistortionIntencity: 0.306
-    - _DistortionPanSpeed: 0.41
-    - _DistortionScale: 0.32
+    - _AlphaPower: 2.49
+    - _ColorIntencity: 1.14
+    - _DistortionIntencity: 0.113
+    - _DistortionPanSpeed: 0.42
+    - _DistortionScale: 0.469
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
