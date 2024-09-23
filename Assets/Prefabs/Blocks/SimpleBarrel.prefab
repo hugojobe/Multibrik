@@ -69,8 +69,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseHealth: 2
   currentHealth: 0
-  hitVFX: {fileID: 3061699504531628418, guid: 53e13e7e299928d4b9b7e8871b5707fc, type: 3}
   correspondingTile: {fileID: 0}
+  dmgBlinkFreq: 2
+  rend: {fileID: 4782096620748214571}
+  hitVFX: {fileID: 3061699504531628418, guid: 53e13e7e299928d4b9b7e8871b5707fc, type: 3}
 --- !u!1001 &6169085054185737647
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -139,6 +141,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 479117dce8460ec4ba80725c22c1768b, type: 3}
+--- !u!23 &4782096620748214571 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: 479117dce8460ec4ba80725c22c1768b,
+    type: 3}
+  m_PrefabInstance: {fileID: 6169085054185737647}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5914993597795854916 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 479117dce8460ec4ba80725c22c1768b,
