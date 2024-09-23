@@ -71,8 +71,8 @@ MonoBehaviour:
   currentHealth: 0
   correspondingTile: {fileID: 0}
   dmgBlinkFreq: 2
-  rend: {fileID: 0}
-  hitVFX: {fileID: 0}
+  rend: {fileID: 144327835232789650}
+  hitVFX: {fileID: 8395188622019703920, guid: 27cb1ef397dbe0a4ea1b3bb6c726f9c1, type: 3}
   ballSpeedMultiplier: 3
 --- !u!1 &8733106873417701777
 GameObject:
