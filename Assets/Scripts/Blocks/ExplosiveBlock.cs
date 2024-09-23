@@ -13,13 +13,24 @@ public class ExplosiveBlock : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, explosionRadius);
     }
 
+    private void OnTriggerEnter(Collider other) {
+        if(other.gameObject.CompareTag("Ground")) {
+            Debug.Log("hit");
+            // VFX HIT GROUND
+        }
+    }
+
     public void StartExplosionSequence() {
-        // EXPLOSIONN FEEDBACK
+
+        // HIT
 
         Invoke("Explode", 2);
     }
 
     private void Explode() {
+
+        // EXPLOSIONN FEEDBACK
+
         Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
         foreach(Collider collider in colliders) {
             Block block = collider.GetComponent<Block>();

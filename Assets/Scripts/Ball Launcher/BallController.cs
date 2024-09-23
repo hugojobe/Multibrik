@@ -37,6 +37,9 @@ public class BallController : MonoBehaviour
     private void OnTriggerEnter(Collider other) {
         if(other.gameObject.CompareTag("Bounce")) {
             HandleBounceCollision(other);
+        } else if(other.gameObject.CompareTag("Rope")){
+            HandleBounceCollision(other);
+            PlayRopeCollisionFeedback();
         } else if(other.gameObject.CompareTag("Explosive") || other.gameObject.CompareTag("Sponge") || other.gameObject.CompareTag("Rotoballe")) {
             HandleSpecialCollision(other);
         }
@@ -98,5 +101,7 @@ public class BallController : MonoBehaviour
         rb.velocity = randomNormalizedVector * ballInitialSpeed * speedMultiplier;
     }
 
-	
+	public void PlayRopeCollisionFeedback() {
+        // VFX COLLISION CORDE
+    }
 }

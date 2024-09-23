@@ -8,6 +8,7 @@ TagManager:
   - Explosive
   - Sponge
   - Rotoballe
+  - Ground
   layers:
   - Default
   - TransparentFX
