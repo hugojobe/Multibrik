@@ -1,19 +1,17 @@
 // Made with Amplify Shader Editor v1.9.2.2
 // Available at the Unity Asset Store - http://u3d.as/y3X 
-Shader "VFX/HitFlare"
+Shader "VFX/HitShockwave"
 {
 	Properties
 	{
 		[HideInInspector] _AlphaCutoff("Alpha Cutoff ", Range(0, 1)) = 0.5
 		[HideInInspector] _EmissionColor("Emission Color", Color) = (1,1,1,1)
-		[NoScaleOffset]_Shape("Shape", 2D) = "white" {}
-		[KeywordEnum(Red,Green,Blue,Alpha)] _Channel("Channel", Float) = 0
+		_Shape("Shape", 2D) = "white" {}
+		[KeywordEnum(Red,Green,Blue,Alpha)] _MaskChannel("Mask Channel", Float) = 0
+		_TransparencyFactor("TransparencyFactor", Float) = 1
 		_Color("Color", Color) = (0,0,0,0)
 		_ColorBooster("ColorBooster", Float) = 1
-		_TransparencyFactor("TransparencyFactor", Range( 0 , 1)) = 1
-		_SizeFactor("SizeFactor", Range( 0 , 1)) = 0
-		_DepthDistanc("DepthDistanc", Float) = 0
-		_DistancePower("DistancePower", Range( 0.03125 , 32)) = 1
+		_SizeFactor("SizeFactor", Float) = 0
 		[HideInInspector] _texcoord( "", 2D ) = "white" {}
 
 
@@ -167,7 +165,7 @@ Shader "VFX/HitFlare"
 
 			Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
 			ZWrite Off
-			ZTest Always
+			ZTest LEqual
 			Offset 0 , 0
 			ColorMask RGBA
 
@@ -183,7 +181,6 @@ Shader "VFX/HitFlare"
 			#define _SURFACE_TYPE_TRANSPARENT 1
 			#define ASE_ABSOLUTE_VERTEX_POS 1
 			#define ASE_SRP_VERSION 140008
-			#define REQUIRE_DEPTH_TEXTURE 1
 
 
 			#pragma shader_feature_local _RECEIVE_SHADOWS_OFF
@@ -221,7 +218,7 @@ Shader "VFX/HitFlare"
 
 			#define ASE_NEEDS_VERT_POSITION
 			#define ASE_NEEDS_VERT_NORMAL
-			#pragma shader_feature_local _CHANNEL_RED _CHANNEL_GREEN _CHANNEL_BLUE _CHANNEL_ALPHA
+			#pragma shader_feature_local _MASKCHANNEL_RED _MASKCHANNEL_GREEN _MASKCHANNEL_BLUE _MASKCHANNEL_ALPHA
 
 
 			struct VertexInput
@@ -246,18 +243,16 @@ Shader "VFX/HitFlare"
 					float fogFactor : TEXCOORD2;
 				#endif
 				float4 ase_texcoord3 : TEXCOORD3;
-				float4 ase_texcoord4 : TEXCOORD4;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _Color;
+			float4 _Shape_ST;
 			float _SizeFactor;
 			float _ColorBooster;
 			float _TransparencyFactor;
-			float _DepthDistanc;
-			float _DistancePower;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -269,7 +264,6 @@ Shader "VFX/HitFlare"
 			CBUFFER_END
 
 			sampler2D _Shape;
-			uniform float4 _CameraDepthTexture_TexelSize;
 
 
 			
@@ -294,13 +288,6 @@ Shader "VFX/HitFlare"
 				v.positionOS.xyz += GetObjectToWorldMatrix()._m03_m13_m23;
 				//Need to nullify rotation inserted by generated surface shader;
 				v.positionOS = mul( GetWorldToObjectMatrix(), v.positionOS );
-				float3 temp_output_18_0 = ( v.positionOS.xyz * _SizeFactor );
-				
-				float3 vertexPos22 = temp_output_18_0;
-				float4 ase_clipPos22 = TransformObjectToHClip((vertexPos22).xyz);
-				float4 screenPos22 = ComputeScreenPos(ase_clipPos22);
-				o.ase_texcoord4 = screenPos22;
-				
 				o.ase_texcoord3.xy = v.ase_texcoord.xy;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
@@ -312,7 +299,7 @@ Shader "VFX/HitFlare"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( temp_output_18_0 + 0 );
+				float3 vertexValue = ( v.positionOS.xyz * _SizeFactor * 0 );
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -451,29 +438,24 @@ Shader "VFX/HitFlare"
 					#endif
 				#endif
 
-				float2 uv_Shape10 = IN.ase_texcoord3.xy;
-				float4 tex2DNode10 = tex2D( _Shape, uv_Shape10 );
-				#if defined(_CHANNEL_RED)
+				float2 uv_Shape = IN.ase_texcoord3.xy * _Shape_ST.xy + _Shape_ST.zw;
+				float4 tex2DNode10 = tex2D( _Shape, uv_Shape );
+				#if defined(_MASKCHANNEL_RED)
 				float staticSwitch11 = tex2DNode10.r;
-				#elif defined(_CHANNEL_GREEN)
+				#elif defined(_MASKCHANNEL_GREEN)
 				float staticSwitch11 = tex2DNode10.g;
-				#elif defined(_CHANNEL_BLUE)
+				#elif defined(_MASKCHANNEL_BLUE)
 				float staticSwitch11 = tex2DNode10.b;
-				#elif defined(_CHANNEL_ALPHA)
+				#elif defined(_MASKCHANNEL_ALPHA)
 				float staticSwitch11 = tex2DNode10.a;
 				#else
 				float staticSwitch11 = tex2DNode10.r;
 				#endif
-				float4 screenPos22 = IN.ase_texcoord4;
-				float4 ase_screenPosNorm22 = screenPos22 / screenPos22.w;
-				ase_screenPosNorm22.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_screenPosNorm22.z : ase_screenPosNorm22.z * 0.5 + 0.5;
-				float screenDepth22 = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH( ase_screenPosNorm22.xy ),_ZBufferParams);
-				float distanceDepth22 = saturate( abs( ( screenDepth22 - LinearEyeDepth( ase_screenPosNorm22.z,_ZBufferParams ) ) / ( _DepthDistanc ) ) );
 				
 				float3 BakedAlbedo = 0;
 				float3 BakedEmission = 0;
 				float3 Color = ( _Color * _ColorBooster ).rgb;
-				float Alpha = ( staticSwitch11 * _TransparencyFactor * pow( distanceDepth22 , _DistancePower ) );
+				float Alpha = ( staticSwitch11 * _TransparencyFactor );
 				float AlphaClipThreshold = 0.5;
 				float AlphaClipThresholdShadow = 0.5;
 
@@ -511,6 +493,309 @@ Shader "VFX/HitFlare"
 		Pass
 		{
 			
+			Name "ShadowCaster"
+			Tags { "LightMode"="ShadowCaster" }
+
+			ZWrite On
+			ZTest LEqual
+			AlphaToMask Off
+			ColorMask 0
+
+			HLSLPROGRAM
+
+			#pragma multi_compile_instancing
+			#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+			#define ASE_FOG 1
+			#define _SURFACE_TYPE_TRANSPARENT 1
+			#define ASE_ABSOLUTE_VERTEX_POS 1
+			#define ASE_SRP_VERSION 140008
+
+
+			#pragma vertex vert
+			#pragma fragment frag
+
+			#pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+
+			#define SHADERPASS SHADERPASS_SHADOWCASTER
+
+			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
+
+			#if defined(LOD_FADE_CROSSFADE)
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+            #endif
+
+			#define ASE_NEEDS_VERT_POSITION
+			#define ASE_NEEDS_VERT_NORMAL
+			#pragma shader_feature_local _MASKCHANNEL_RED _MASKCHANNEL_GREEN _MASKCHANNEL_BLUE _MASKCHANNEL_ALPHA
+
+
+			struct VertexInput
+			{
+				float4 positionOS : POSITION;
+				float3 normalOS : NORMAL;
+				float4 ase_tangent : TANGENT;
+				float4 ase_texcoord : TEXCOORD0;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+			};
+
+			struct VertexOutput
+			{
+				float4 positionCS : SV_POSITION;
+				#if defined(ASE_NEEDS_FRAG_WORLD_POSITION)
+					float3 positionWS : TEXCOORD0;
+				#endif
+				#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR) && defined(ASE_NEEDS_FRAG_SHADOWCOORDS)
+					float4 shadowCoord : TEXCOORD1;
+				#endif
+				float4 ase_texcoord2 : TEXCOORD2;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+				UNITY_VERTEX_OUTPUT_STEREO
+			};
+
+			CBUFFER_START(UnityPerMaterial)
+			float4 _Color;
+			float4 _Shape_ST;
+			float _SizeFactor;
+			float _ColorBooster;
+			float _TransparencyFactor;
+			#ifdef ASE_TESSELLATION
+				float _TessPhongStrength;
+				float _TessValue;
+				float _TessMin;
+				float _TessMax;
+				float _TessEdgeLength;
+				float _TessMaxDisp;
+			#endif
+			CBUFFER_END
+
+			sampler2D _Shape;
+
+
+			
+			float3 _LightDirection;
+			float3 _LightPosition;
+
+			VertexOutput VertexFunction( VertexInput v )
+			{
+				VertexOutput o;
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_TRANSFER_INSTANCE_ID(v, o);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO( o );
+
+				//Calculate new billboard vertex position and normal;
+				float3 upCamVec = normalize ( UNITY_MATRIX_V._m10_m11_m12 );
+				float3 forwardCamVec = -normalize ( UNITY_MATRIX_V._m20_m21_m22 );
+				float3 rightCamVec = normalize( UNITY_MATRIX_V._m00_m01_m02 );
+				float4x4 rotationCamMatrix = float4x4( rightCamVec, 0, upCamVec, 0, forwardCamVec, 0, 0, 0, 0, 1 );
+				v.normalOS = normalize( mul( float4( v.normalOS , 0 ), rotationCamMatrix )).xyz;
+				v.ase_tangent.xyz = normalize( mul( float4( v.ase_tangent.xyz , 0 ), rotationCamMatrix )).xyz;
+				v.positionOS.x *= length( GetObjectToWorldMatrix()._m00_m10_m20 );
+				v.positionOS.y *= length( GetObjectToWorldMatrix()._m01_m11_m21 );
+				v.positionOS.z *= length( GetObjectToWorldMatrix()._m02_m12_m22 );
+				v.positionOS = mul( v.positionOS, rotationCamMatrix );
+				v.positionOS.xyz += GetObjectToWorldMatrix()._m03_m13_m23;
+				//Need to nullify rotation inserted by generated surface shader;
+				v.positionOS = mul( GetWorldToObjectMatrix(), v.positionOS );
+				o.ase_texcoord2.xy = v.ase_texcoord.xy;
+				
+				//setting value to unused interpolator channels and avoid initialization warnings
+				o.ase_texcoord2.zw = 0;
+
+				#ifdef ASE_ABSOLUTE_VERTEX_POS
+					float3 defaultVertexValue = v.positionOS.xyz;
+				#else
+					float3 defaultVertexValue = float3(0, 0, 0);
+				#endif
+
+				float3 vertexValue = ( v.positionOS.xyz * _SizeFactor * 0 );
+
+				#ifdef ASE_ABSOLUTE_VERTEX_POS
+					v.positionOS.xyz = vertexValue;
+				#else
+					v.positionOS.xyz += vertexValue;
+				#endif
+
+				v.normalOS = v.normalOS;
+
+				float3 positionWS = TransformObjectToWorld( v.positionOS.xyz );
+
+				#if defined(ASE_NEEDS_FRAG_WORLD_POSITION)
+					o.positionWS = positionWS;
+				#endif
+
+				float3 normalWS = TransformObjectToWorldDir( v.normalOS );
+
+				#if _CASTING_PUNCTUAL_LIGHT_SHADOW
+					float3 lightDirectionWS = normalize(_LightPosition - positionWS);
+				#else
+					float3 lightDirectionWS = _LightDirection;
+				#endif
+
+				float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
+
+				#if UNITY_REVERSED_Z
+					positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);
+				#else
+					positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
+				#endif
+
+				#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR) && defined(ASE_NEEDS_FRAG_SHADOWCOORDS)
+					VertexPositionInputs vertexInput = (VertexPositionInputs)0;
+					vertexInput.positionWS = positionWS;
+					vertexInput.positionCS = positionCS;
+					o.shadowCoord = GetShadowCoord( vertexInput );
+				#endif
+
+				o.positionCS = positionCS;
+
+				return o;
+			}
+
+			#if defined(ASE_TESSELLATION)
+			struct VertexControl
+			{
+				float4 vertex : INTERNALTESSPOS;
+				float3 normalOS : NORMAL;
+				float4 ase_tangent : TANGENT;
+				float4 ase_texcoord : TEXCOORD0;
+
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+			};
+
+			struct TessellationFactors
+			{
+				float edge[3] : SV_TessFactor;
+				float inside : SV_InsideTessFactor;
+			};
+
+			VertexControl vert ( VertexInput v )
+			{
+				VertexControl o;
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_TRANSFER_INSTANCE_ID(v, o);
+				o.vertex = v.positionOS;
+				o.normalOS = v.normalOS;
+				o.ase_tangent = v.ase_tangent;
+				o.ase_texcoord = v.ase_texcoord;
+				return o;
+			}
+
+			TessellationFactors TessellationFunction (InputPatch<VertexControl,3> v)
+			{
+				TessellationFactors o;
+				float4 tf = 1;
+				float tessValue = _TessValue; float tessMin = _TessMin; float tessMax = _TessMax;
+				float edgeLength = _TessEdgeLength; float tessMaxDisp = _TessMaxDisp;
+				#if defined(ASE_FIXED_TESSELLATION)
+				tf = FixedTess( tessValue );
+				#elif defined(ASE_DISTANCE_TESSELLATION)
+				tf = DistanceBasedTess(v[0].vertex, v[1].vertex, v[2].vertex, tessValue, tessMin, tessMax, GetObjectToWorldMatrix(), _WorldSpaceCameraPos );
+				#elif defined(ASE_LENGTH_TESSELLATION)
+				tf = EdgeLengthBasedTess(v[0].vertex, v[1].vertex, v[2].vertex, edgeLength, GetObjectToWorldMatrix(), _WorldSpaceCameraPos, _ScreenParams );
+				#elif defined(ASE_LENGTH_CULL_TESSELLATION)
+				tf = EdgeLengthBasedTessCull(v[0].vertex, v[1].vertex, v[2].vertex, edgeLength, tessMaxDisp, GetObjectToWorldMatrix(), _WorldSpaceCameraPos, _ScreenParams, unity_CameraWorldClipPlanes );
+				#endif
+				o.edge[0] = tf.x; o.edge[1] = tf.y; o.edge[2] = tf.z; o.inside = tf.w;
+				return o;
+			}
+
+			[domain("tri")]
+			[partitioning("fractional_odd")]
+			[outputtopology("triangle_cw")]
+			[patchconstantfunc("TessellationFunction")]
+			[outputcontrolpoints(3)]
+			VertexControl HullFunction(InputPatch<VertexControl, 3> patch, uint id : SV_OutputControlPointID)
+			{
+				return patch[id];
+			}
+
+			[domain("tri")]
+			VertexOutput DomainFunction(TessellationFactors factors, OutputPatch<VertexControl, 3> patch, float3 bary : SV_DomainLocation)
+			{
+				VertexInput o = (VertexInput) 0;
+				o.positionOS = patch[0].vertex * bary.x + patch[1].vertex * bary.y + patch[2].vertex * bary.z;
+				o.normalOS = patch[0].normalOS * bary.x + patch[1].normalOS * bary.y + patch[2].normalOS * bary.z;
+				o.ase_tangent = patch[0].ase_tangent * bary.x + patch[1].ase_tangent * bary.y + patch[2].ase_tangent * bary.z;
+				o.ase_texcoord = patch[0].ase_texcoord * bary.x + patch[1].ase_texcoord * bary.y + patch[2].ase_texcoord * bary.z;
+				#if defined(ASE_PHONG_TESSELLATION)
+				float3 pp[3];
+				for (int i = 0; i < 3; ++i)
+					pp[i] = o.positionOS.xyz - patch[i].normalOS * (dot(o.positionOS.xyz, patch[i].normalOS) - dot(patch[i].vertex.xyz, patch[i].normalOS));
+				float phongStrength = _TessPhongStrength;
+				o.positionOS.xyz = phongStrength * (pp[0]*bary.x + pp[1]*bary.y + pp[2]*bary.z) + (1.0f-phongStrength) * o.positionOS.xyz;
+				#endif
+				UNITY_TRANSFER_INSTANCE_ID(patch[0], o);
+				return VertexFunction(o);
+			}
+			#else
+			VertexOutput vert ( VertexInput v )
+			{
+				return VertexFunction( v );
+			}
+			#endif
+
+			half4 frag(VertexOutput IN  ) : SV_TARGET
+			{
+				UNITY_SETUP_INSTANCE_ID( IN );
+				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX( IN );
+
+				#if defined(ASE_NEEDS_FRAG_WORLD_POSITION)
+					float3 WorldPosition = IN.positionWS;
+				#endif
+
+				float4 ShadowCoords = float4( 0, 0, 0, 0 );
+
+				#if defined(ASE_NEEDS_FRAG_SHADOWCOORDS)
+					#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+						ShadowCoords = IN.shadowCoord;
+					#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+						ShadowCoords = TransformWorldToShadowCoord( WorldPosition );
+					#endif
+				#endif
+
+				float2 uv_Shape = IN.ase_texcoord2.xy * _Shape_ST.xy + _Shape_ST.zw;
+				float4 tex2DNode10 = tex2D( _Shape, uv_Shape );
+				#if defined(_MASKCHANNEL_RED)
+				float staticSwitch11 = tex2DNode10.r;
+				#elif defined(_MASKCHANNEL_GREEN)
+				float staticSwitch11 = tex2DNode10.g;
+				#elif defined(_MASKCHANNEL_BLUE)
+				float staticSwitch11 = tex2DNode10.b;
+				#elif defined(_MASKCHANNEL_ALPHA)
+				float staticSwitch11 = tex2DNode10.a;
+				#else
+				float staticSwitch11 = tex2DNode10.r;
+				#endif
+				
+
+				float Alpha = ( staticSwitch11 * _TransparencyFactor );
+				float AlphaClipThreshold = 0.5;
+				float AlphaClipThresholdShadow = 0.5;
+
+				#ifdef _ALPHATEST_ON
+					#ifdef _ALPHATEST_SHADOW_ON
+						clip(Alpha - AlphaClipThresholdShadow);
+					#else
+						clip(Alpha - AlphaClipThreshold);
+					#endif
+				#endif
+
+				#ifdef LOD_FADE_CROSSFADE
+					LODFadeCrossFade( IN.positionCS );
+				#endif
+
+				return 0;
+			}
+			ENDHLSL
+		}
+
+		
+		Pass
+		{
+			
 			Name "DepthOnly"
 			Tags { "LightMode"="DepthOnly" }
 
@@ -526,7 +811,6 @@ Shader "VFX/HitFlare"
 			#define _SURFACE_TYPE_TRANSPARENT 1
 			#define ASE_ABSOLUTE_VERTEX_POS 1
 			#define ASE_SRP_VERSION 140008
-			#define REQUIRE_DEPTH_TEXTURE 1
 
 
 			#pragma vertex vert
@@ -543,7 +827,7 @@ Shader "VFX/HitFlare"
 
 			#define ASE_NEEDS_VERT_POSITION
 			#define ASE_NEEDS_VERT_NORMAL
-			#pragma shader_feature_local _CHANNEL_RED _CHANNEL_GREEN _CHANNEL_BLUE _CHANNEL_ALPHA
+			#pragma shader_feature_local _MASKCHANNEL_RED _MASKCHANNEL_GREEN _MASKCHANNEL_BLUE _MASKCHANNEL_ALPHA
 
 
 			struct VertexInput
@@ -565,18 +849,16 @@ Shader "VFX/HitFlare"
 				float4 shadowCoord : TEXCOORD1;
 				#endif
 				float4 ase_texcoord2 : TEXCOORD2;
-				float4 ase_texcoord3 : TEXCOORD3;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _Color;
+			float4 _Shape_ST;
 			float _SizeFactor;
 			float _ColorBooster;
 			float _TransparencyFactor;
-			float _DepthDistanc;
-			float _DistancePower;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -588,7 +870,6 @@ Shader "VFX/HitFlare"
 			CBUFFER_END
 
 			sampler2D _Shape;
-			uniform float4 _CameraDepthTexture_TexelSize;
 
 
 			
@@ -613,13 +894,6 @@ Shader "VFX/HitFlare"
 				v.positionOS.xyz += GetObjectToWorldMatrix()._m03_m13_m23;
 				//Need to nullify rotation inserted by generated surface shader;
 				v.positionOS = mul( GetWorldToObjectMatrix(), v.positionOS );
-				float3 temp_output_18_0 = ( v.positionOS.xyz * _SizeFactor );
-				
-				float3 vertexPos22 = temp_output_18_0;
-				float4 ase_clipPos22 = TransformObjectToHClip((vertexPos22).xyz);
-				float4 screenPos22 = ComputeScreenPos(ase_clipPos22);
-				o.ase_texcoord3 = screenPos22;
-				
 				o.ase_texcoord2.xy = v.ase_texcoord.xy;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
@@ -631,7 +905,7 @@ Shader "VFX/HitFlare"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( temp_output_18_0 + 0 );
+				float3 vertexValue = ( v.positionOS.xyz * _SizeFactor * 0 );
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -760,27 +1034,22 @@ Shader "VFX/HitFlare"
 					#endif
 				#endif
 
-				float2 uv_Shape10 = IN.ase_texcoord2.xy;
-				float4 tex2DNode10 = tex2D( _Shape, uv_Shape10 );
-				#if defined(_CHANNEL_RED)
+				float2 uv_Shape = IN.ase_texcoord2.xy * _Shape_ST.xy + _Shape_ST.zw;
+				float4 tex2DNode10 = tex2D( _Shape, uv_Shape );
+				#if defined(_MASKCHANNEL_RED)
 				float staticSwitch11 = tex2DNode10.r;
-				#elif defined(_CHANNEL_GREEN)
+				#elif defined(_MASKCHANNEL_GREEN)
 				float staticSwitch11 = tex2DNode10.g;
-				#elif defined(_CHANNEL_BLUE)
+				#elif defined(_MASKCHANNEL_BLUE)
 				float staticSwitch11 = tex2DNode10.b;
-				#elif defined(_CHANNEL_ALPHA)
+				#elif defined(_MASKCHANNEL_ALPHA)
 				float staticSwitch11 = tex2DNode10.a;
 				#else
 				float staticSwitch11 = tex2DNode10.r;
 				#endif
-				float4 screenPos22 = IN.ase_texcoord3;
-				float4 ase_screenPosNorm22 = screenPos22 / screenPos22.w;
-				ase_screenPosNorm22.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_screenPosNorm22.z : ase_screenPosNorm22.z * 0.5 + 0.5;
-				float screenDepth22 = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH( ase_screenPosNorm22.xy ),_ZBufferParams);
-				float distanceDepth22 = saturate( abs( ( screenDepth22 - LinearEyeDepth( ase_screenPosNorm22.z,_ZBufferParams ) ) / ( _DepthDistanc ) ) );
 				
 
-				float Alpha = ( staticSwitch11 * _TransparencyFactor * pow( distanceDepth22 , _DistancePower ) );
+				float Alpha = ( staticSwitch11 * _TransparencyFactor );
 				float AlphaClipThreshold = 0.5;
 
 				#ifdef _ALPHATEST_ON
@@ -811,7 +1080,6 @@ Shader "VFX/HitFlare"
 			#define _SURFACE_TYPE_TRANSPARENT 1
 			#define ASE_ABSOLUTE_VERTEX_POS 1
 			#define ASE_SRP_VERSION 140008
-			#define REQUIRE_DEPTH_TEXTURE 1
 
 
 			#pragma vertex vert
@@ -831,7 +1099,7 @@ Shader "VFX/HitFlare"
 
 			#define ASE_NEEDS_VERT_POSITION
 			#define ASE_NEEDS_VERT_NORMAL
-			#pragma shader_feature_local _CHANNEL_RED _CHANNEL_GREEN _CHANNEL_BLUE _CHANNEL_ALPHA
+			#pragma shader_feature_local _MASKCHANNEL_RED _MASKCHANNEL_GREEN _MASKCHANNEL_BLUE _MASKCHANNEL_ALPHA
 
 
 			struct VertexInput
@@ -847,18 +1115,16 @@ Shader "VFX/HitFlare"
 			{
 				float4 positionCS : SV_POSITION;
 				float4 ase_texcoord : TEXCOORD0;
-				float4 ase_texcoord1 : TEXCOORD1;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _Color;
+			float4 _Shape_ST;
 			float _SizeFactor;
 			float _ColorBooster;
 			float _TransparencyFactor;
-			float _DepthDistanc;
-			float _DistancePower;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -870,7 +1136,6 @@ Shader "VFX/HitFlare"
 			CBUFFER_END
 
 			sampler2D _Shape;
-			uniform float4 _CameraDepthTexture_TexelSize;
 
 
 			
@@ -906,13 +1171,6 @@ Shader "VFX/HitFlare"
 				v.positionOS.xyz += GetObjectToWorldMatrix()._m03_m13_m23;
 				//Need to nullify rotation inserted by generated surface shader;
 				v.positionOS = mul( GetWorldToObjectMatrix(), v.positionOS );
-				float3 temp_output_18_0 = ( v.positionOS.xyz * _SizeFactor );
-				
-				float3 vertexPos22 = temp_output_18_0;
-				float4 ase_clipPos22 = TransformObjectToHClip((vertexPos22).xyz);
-				float4 screenPos22 = ComputeScreenPos(ase_clipPos22);
-				o.ase_texcoord1 = screenPos22;
-				
 				o.ase_texcoord.xy = v.ase_texcoord.xy;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
@@ -924,7 +1182,7 @@ Shader "VFX/HitFlare"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( temp_output_18_0 + 0 );
+				float3 vertexValue = ( v.positionOS.xyz * _SizeFactor * 0 );
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -1028,27 +1286,22 @@ Shader "VFX/HitFlare"
 			{
 				SurfaceDescription surfaceDescription = (SurfaceDescription)0;
 
-				float2 uv_Shape10 = IN.ase_texcoord.xy;
-				float4 tex2DNode10 = tex2D( _Shape, uv_Shape10 );
-				#if defined(_CHANNEL_RED)
+				float2 uv_Shape = IN.ase_texcoord.xy * _Shape_ST.xy + _Shape_ST.zw;
+				float4 tex2DNode10 = tex2D( _Shape, uv_Shape );
+				#if defined(_MASKCHANNEL_RED)
 				float staticSwitch11 = tex2DNode10.r;
-				#elif defined(_CHANNEL_GREEN)
+				#elif defined(_MASKCHANNEL_GREEN)
 				float staticSwitch11 = tex2DNode10.g;
-				#elif defined(_CHANNEL_BLUE)
+				#elif defined(_MASKCHANNEL_BLUE)
 				float staticSwitch11 = tex2DNode10.b;
-				#elif defined(_CHANNEL_ALPHA)
+				#elif defined(_MASKCHANNEL_ALPHA)
 				float staticSwitch11 = tex2DNode10.a;
 				#else
 				float staticSwitch11 = tex2DNode10.r;
 				#endif
-				float4 screenPos22 = IN.ase_texcoord1;
-				float4 ase_screenPosNorm22 = screenPos22 / screenPos22.w;
-				ase_screenPosNorm22.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_screenPosNorm22.z : ase_screenPosNorm22.z * 0.5 + 0.5;
-				float screenDepth22 = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH( ase_screenPosNorm22.xy ),_ZBufferParams);
-				float distanceDepth22 = saturate( abs( ( screenDepth22 - LinearEyeDepth( ase_screenPosNorm22.z,_ZBufferParams ) ) / ( _DepthDistanc ) ) );
 				
 
-				surfaceDescription.Alpha = ( staticSwitch11 * _TransparencyFactor * pow( distanceDepth22 , _DistancePower ) );
+				surfaceDescription.Alpha = ( staticSwitch11 * _TransparencyFactor );
 				surfaceDescription.AlphaClipThreshold = 0.5;
 
 				#if _ALPHATEST_ON
@@ -1080,7 +1333,6 @@ Shader "VFX/HitFlare"
 			#define _SURFACE_TYPE_TRANSPARENT 1
 			#define ASE_ABSOLUTE_VERTEX_POS 1
 			#define ASE_SRP_VERSION 140008
-			#define REQUIRE_DEPTH_TEXTURE 1
 
 
 			#pragma vertex vert
@@ -1105,7 +1357,7 @@ Shader "VFX/HitFlare"
 
 			#define ASE_NEEDS_VERT_POSITION
 			#define ASE_NEEDS_VERT_NORMAL
-			#pragma shader_feature_local _CHANNEL_RED _CHANNEL_GREEN _CHANNEL_BLUE _CHANNEL_ALPHA
+			#pragma shader_feature_local _MASKCHANNEL_RED _MASKCHANNEL_GREEN _MASKCHANNEL_BLUE _MASKCHANNEL_ALPHA
 
 
 			struct VertexInput
@@ -1121,18 +1373,16 @@ Shader "VFX/HitFlare"
 			{
 				float4 positionCS : SV_POSITION;
 				float4 ase_texcoord : TEXCOORD0;
-				float4 ase_texcoord1 : TEXCOORD1;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _Color;
+			float4 _Shape_ST;
 			float _SizeFactor;
 			float _ColorBooster;
 			float _TransparencyFactor;
-			float _DepthDistanc;
-			float _DistancePower;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -1144,7 +1394,6 @@ Shader "VFX/HitFlare"
 			CBUFFER_END
 
 			sampler2D _Shape;
-			uniform float4 _CameraDepthTexture_TexelSize;
 
 
 			
@@ -1179,13 +1428,6 @@ Shader "VFX/HitFlare"
 				v.positionOS.xyz += GetObjectToWorldMatrix()._m03_m13_m23;
 				//Need to nullify rotation inserted by generated surface shader;
 				v.positionOS = mul( GetWorldToObjectMatrix(), v.positionOS );
-				float3 temp_output_18_0 = ( v.positionOS.xyz * _SizeFactor );
-				
-				float3 vertexPos22 = temp_output_18_0;
-				float4 ase_clipPos22 = TransformObjectToHClip((vertexPos22).xyz);
-				float4 screenPos22 = ComputeScreenPos(ase_clipPos22);
-				o.ase_texcoord1 = screenPos22;
-				
 				o.ase_texcoord.xy = v.ase_texcoord.xy;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
@@ -1197,7 +1439,7 @@ Shader "VFX/HitFlare"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( temp_output_18_0 + 0 );
+				float3 vertexValue = ( v.positionOS.xyz * _SizeFactor * 0 );
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -1299,27 +1541,22 @@ Shader "VFX/HitFlare"
 			{
 				SurfaceDescription surfaceDescription = (SurfaceDescription)0;
 
-				float2 uv_Shape10 = IN.ase_texcoord.xy;
-				float4 tex2DNode10 = tex2D( _Shape, uv_Shape10 );
-				#if defined(_CHANNEL_RED)
+				float2 uv_Shape = IN.ase_texcoord.xy * _Shape_ST.xy + _Shape_ST.zw;
+				float4 tex2DNode10 = tex2D( _Shape, uv_Shape );
+				#if defined(_MASKCHANNEL_RED)
 				float staticSwitch11 = tex2DNode10.r;
-				#elif defined(_CHANNEL_GREEN)
+				#elif defined(_MASKCHANNEL_GREEN)
 				float staticSwitch11 = tex2DNode10.g;
-				#elif defined(_CHANNEL_BLUE)
+				#elif defined(_MASKCHANNEL_BLUE)
 				float staticSwitch11 = tex2DNode10.b;
-				#elif defined(_CHANNEL_ALPHA)
+				#elif defined(_MASKCHANNEL_ALPHA)
 				float staticSwitch11 = tex2DNode10.a;
 				#else
 				float staticSwitch11 = tex2DNode10.r;
 				#endif
-				float4 screenPos22 = IN.ase_texcoord1;
-				float4 ase_screenPosNorm22 = screenPos22 / screenPos22.w;
-				ase_screenPosNorm22.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_screenPosNorm22.z : ase_screenPosNorm22.z * 0.5 + 0.5;
-				float screenDepth22 = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH( ase_screenPosNorm22.xy ),_ZBufferParams);
-				float distanceDepth22 = saturate( abs( ( screenDepth22 - LinearEyeDepth( ase_screenPosNorm22.z,_ZBufferParams ) ) / ( _DepthDistanc ) ) );
 				
 
-				surfaceDescription.Alpha = ( staticSwitch11 * _TransparencyFactor * pow( distanceDepth22 , _DistancePower ) );
+				surfaceDescription.Alpha = ( staticSwitch11 * _TransparencyFactor );
 				surfaceDescription.AlphaClipThreshold = 0.5;
 
 				#if _ALPHATEST_ON
@@ -1357,7 +1594,6 @@ Shader "VFX/HitFlare"
 			#define _SURFACE_TYPE_TRANSPARENT 1
 			#define ASE_ABSOLUTE_VERTEX_POS 1
 			#define ASE_SRP_VERSION 140008
-			#define REQUIRE_DEPTH_TEXTURE 1
 
 
 			#pragma vertex vert
@@ -1386,7 +1622,7 @@ Shader "VFX/HitFlare"
 
 			#define ASE_NEEDS_VERT_POSITION
 			#define ASE_NEEDS_VERT_NORMAL
-			#pragma shader_feature_local _CHANNEL_RED _CHANNEL_GREEN _CHANNEL_BLUE _CHANNEL_ALPHA
+			#pragma shader_feature_local _MASKCHANNEL_RED _MASKCHANNEL_GREEN _MASKCHANNEL_BLUE _MASKCHANNEL_ALPHA
 
 
 			struct VertexInput
@@ -1403,18 +1639,16 @@ Shader "VFX/HitFlare"
 				float4 positionCS : SV_POSITION;
 				float3 normalWS : TEXCOORD0;
 				float4 ase_texcoord1 : TEXCOORD1;
-				float4 ase_texcoord2 : TEXCOORD2;
 				UNITY_VERTEX_INPUT_INSTANCE_ID
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _Color;
+			float4 _Shape_ST;
 			float _SizeFactor;
 			float _ColorBooster;
 			float _TransparencyFactor;
-			float _DepthDistanc;
-			float _DistancePower;
 			#ifdef ASE_TESSELLATION
 				float _TessPhongStrength;
 				float _TessValue;
@@ -1426,7 +1660,6 @@ Shader "VFX/HitFlare"
 			CBUFFER_END
 
 			sampler2D _Shape;
-			uniform float4 _CameraDepthTexture_TexelSize;
 
 
 			
@@ -1459,13 +1692,6 @@ Shader "VFX/HitFlare"
 				v.positionOS.xyz += GetObjectToWorldMatrix()._m03_m13_m23;
 				//Need to nullify rotation inserted by generated surface shader;
 				v.positionOS = mul( GetWorldToObjectMatrix(), v.positionOS );
-				float3 temp_output_18_0 = ( v.positionOS.xyz * _SizeFactor );
-				
-				float3 vertexPos22 = temp_output_18_0;
-				float4 ase_clipPos22 = TransformObjectToHClip((vertexPos22).xyz);
-				float4 screenPos22 = ComputeScreenPos(ase_clipPos22);
-				o.ase_texcoord2 = screenPos22;
-				
 				o.ase_texcoord1.xy = v.ase_texcoord.xy;
 				
 				//setting value to unused interpolator channels and avoid initialization warnings
@@ -1477,7 +1703,7 @@ Shader "VFX/HitFlare"
 					float3 defaultVertexValue = float3(0, 0, 0);
 				#endif
 
-				float3 vertexValue = ( temp_output_18_0 + 0 );
+				float3 vertexValue = ( v.positionOS.xyz * _SizeFactor * 0 );
 
 				#ifdef ASE_ABSOLUTE_VERTEX_POS
 					v.positionOS.xyz = vertexValue;
@@ -1588,27 +1814,22 @@ Shader "VFX/HitFlare"
 			{
 				SurfaceDescription surfaceDescription = (SurfaceDescription)0;
 
-				float2 uv_Shape10 = IN.ase_texcoord1.xy;
-				float4 tex2DNode10 = tex2D( _Shape, uv_Shape10 );
-				#if defined(_CHANNEL_RED)
+				float2 uv_Shape = IN.ase_texcoord1.xy * _Shape_ST.xy + _Shape_ST.zw;
+				float4 tex2DNode10 = tex2D( _Shape, uv_Shape );
+				#if defined(_MASKCHANNEL_RED)
 				float staticSwitch11 = tex2DNode10.r;
-				#elif defined(_CHANNEL_GREEN)
+				#elif defined(_MASKCHANNEL_GREEN)
 				float staticSwitch11 = tex2DNode10.g;
-				#elif defined(_CHANNEL_BLUE)
+				#elif defined(_MASKCHANNEL_BLUE)
 				float staticSwitch11 = tex2DNode10.b;
-				#elif defined(_CHANNEL_ALPHA)
+				#elif defined(_MASKCHANNEL_ALPHA)
 				float staticSwitch11 = tex2DNode10.a;
 				#else
 				float staticSwitch11 = tex2DNode10.r;
 				#endif
-				float4 screenPos22 = IN.ase_texcoord2;
-				float4 ase_screenPosNorm22 = screenPos22 / screenPos22.w;
-				ase_screenPosNorm22.z = ( UNITY_NEAR_CLIP_VALUE >= 0 ) ? ase_screenPosNorm22.z : ase_screenPosNorm22.z * 0.5 + 0.5;
-				float screenDepth22 = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH( ase_screenPosNorm22.xy ),_ZBufferParams);
-				float distanceDepth22 = saturate( abs( ( screenDepth22 - LinearEyeDepth( ase_screenPosNorm22.z,_ZBufferParams ) ) / ( _DepthDistanc ) ) );
 				
 
-				surfaceDescription.Alpha = ( staticSwitch11 * _TransparencyFactor * pow( distanceDepth22 , _DistancePower ) );
+				surfaceDescription.Alpha = ( staticSwitch11 * _TransparencyFactor );
 				surfaceDescription.AlphaClipThreshold = 0.5;
 
 				#if _ALPHATEST_ON
@@ -1658,42 +1879,31 @@ Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;6;0,0;Float;False;False;-1;
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;7;0,0;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;1;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;ScenePickingPass;0;7;ScenePickingPass;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=Picking;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;8;0,0;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;1;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;DepthNormals;0;8;DepthNormals;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;False;True;1;LightMode=DepthNormalsOnly;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;9;0,0;Float;False;False;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;1;New Amplify Shader;2992e84f91cbeb14eab234972e07ea9d;True;DepthNormalsOnly;0;9;DepthNormalsOnly;0;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;False;True;1;LightMode=DepthNormalsOnly;False;True;9;d3d11;metal;vulkan;xboxone;xboxseries;playstation;ps4;ps5;switch;0;;0;0;Standard;0;False;0
-Node;AmplifyShaderEditor.ColorNode;12;-1088.747,-397.0187;Inherit;False;Property;_Color;Color;2;0;Create;True;0;0;0;False;0;False;0,0,0,0;0,0,0,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;13;-812.2344,-209.1241;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;FLOAT;0;False;1;COLOR;0
-Node;AmplifyShaderEditor.RangedFloatNode;14;-1046.207,-64.22687;Inherit;False;Property;_ColorBooster;ColorBooster;3;0;Create;True;0;0;0;False;0;False;1;0;0;0;0;1;FLOAT;0
-Node;AmplifyShaderEditor.StaticSwitch;11;-1171.538,128.7554;Inherit;False;Property;_Channel;Channel;1;0;Create;True;0;0;0;False;0;False;0;0;0;True;;KeywordEnum;4;Red;Green;Blue;Alpha;Create;True;True;All;9;1;FLOAT;0;False;0;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;4;FLOAT;0;False;5;FLOAT;0;False;6;FLOAT;0;False;7;FLOAT;0;False;8;FLOAT;0;False;1;FLOAT;0
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;15;-834.5618,277.1413;Inherit;False;3;3;0;FLOAT;0;False;1;FLOAT;0;False;2;FLOAT;0;False;1;FLOAT;0
-Node;AmplifyShaderEditor.RangedFloatNode;16;-1400.597,376.7924;Inherit;False;Property;_TransparencyFactor;TransparencyFactor;4;0;Create;True;0;0;0;False;0;False;1;0;0;1;0;1;FLOAT;0
-Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;1;88.39899,477.7756;Float;False;True;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;VFX/HitFlare;2992e84f91cbeb14eab234972e07ea9d;True;Forward;0;1;Forward;8;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Transparent=RenderType;Queue=Transparent=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;True;1;5;False;;10;False;;1;1;False;;10;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;True;True;2;False;;True;7;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForwardOnly;False;False;0;;0;0;Standard;22;Surface;1;638624429321839522;  Blend;0;0;Two Sided;1;0;Forward Only;0;0;Cast Shadows;0;638626751895680418;  Use Shadow Threshold;0;0;GPU Instancing;1;0;LOD CrossFade;1;0;Built-in Fog;1;0;DOTS Instancing;0;0;Meta Pass;0;0;Extra Pre Pass;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Vertex Position,InvertActionOnDeselection;0;638624429449971637;0;10;False;True;False;True;False;False;True;True;True;False;False;;False;0
-Node;AmplifyShaderEditor.BillboardNode;20;-1055.195,1421.432;Inherit;False;Spherical;True;True;0;1;FLOAT3;0
-Node;AmplifyShaderEditor.PosVertexDataNode;17;-2482.244,988.4411;Inherit;False;0;0;5;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-Node;AmplifyShaderEditor.PowerNode;24;-1063.119,665.8372;Inherit;False;False;2;0;FLOAT;0;False;1;FLOAT;1;False;1;FLOAT;0
-Node;AmplifyShaderEditor.RangedFloatNode;25;-1419.218,801.2556;Inherit;False;Property;_DistancePower;DistancePower;7;0;Create;True;0;0;0;False;0;False;1;0;0.03125;32;0;1;FLOAT;0
-Node;AmplifyShaderEditor.DepthFade;22;-1407.969,605.835;Inherit;False;True;True;True;2;1;FLOAT3;0,0,0;False;0;FLOAT;1;False;1;FLOAT;0
-Node;AmplifyShaderEditor.SimpleAddOpNode;26;-59.17896,934.8044;Inherit;False;2;2;0;FLOAT3;0,0,0;False;1;FLOAT3;0,0,0;False;1;FLOAT3;0
-Node;AmplifyShaderEditor.RangedFloatNode;19;-2571.08,1360.545;Inherit;False;Property;_SizeFactor;SizeFactor;5;0;Create;True;0;0;0;False;0;False;0;0;0;1;0;1;FLOAT;0
-Node;AmplifyShaderEditor.SimpleMultiplyOpNode;18;-2134.077,1100.636;Inherit;False;2;2;0;FLOAT3;0,0,0;False;1;FLOAT;0;False;1;FLOAT3;0
-Node;AmplifyShaderEditor.RangedFloatNode;23;-1735.922,981.7169;Inherit;False;Property;_DepthDistanc;DepthDistanc;6;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
-Node;AmplifyShaderEditor.SamplerNode;10;-1500.287,106.2517;Inherit;True;Property;_Shape;Shape;0;1;[NoScaleOffset];Create;True;0;0;0;False;0;False;-1;None;None;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
-WireConnection;13;0;12;0
-WireConnection;13;1;14;0
+Node;AmplifyShaderEditor.SamplerNode;10;-1968.53,-217.7264;Inherit;True;Property;_Shape;Shape;0;0;Create;True;0;0;0;False;0;False;-1;None;None;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.StaticSwitch;11;-1560.64,-188.6245;Inherit;False;Property;_MaskChannel;Mask Channel;1;0;Create;True;0;0;0;False;0;False;0;0;0;True;;KeywordEnum;4;Red;Green;Blue;Alpha;Create;True;True;All;9;1;FLOAT;0;False;0;FLOAT;0;False;2;FLOAT;0;False;3;FLOAT;0;False;4;FLOAT;0;False;5;FLOAT;0;False;6;FLOAT;0;False;7;FLOAT;0;False;8;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.RangedFloatNode;12;-1557.056,82.90601;Inherit;False;Property;_TransparencyFactor;TransparencyFactor;2;0;Create;True;0;0;0;False;0;False;1;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.SimpleMultiplyOpNode;13;-625.7684,43.49309;Inherit;False;2;2;0;FLOAT;0;False;1;FLOAT;0;False;1;FLOAT;0
+Node;AmplifyShaderEditor.ColorNode;14;-1011.198,-884.5932;Inherit;False;Property;_Color;Color;3;0;Create;True;0;0;0;False;0;False;0,0,0,0;0,0,0,0;True;0;5;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.RangedFloatNode;15;-980.4272,-618.65;Inherit;False;Property;_ColorBooster;ColorBooster;4;0;Create;True;0;0;0;False;0;False;1;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.SimpleMultiplyOpNode;16;-623.2776,-678.5649;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;FLOAT;0;False;1;COLOR;0
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;1;336.0008,78.58739;Float;False;True;-1;2;UnityEditor.ShaderGraphUnlitGUI;0;13;VFX/HitShockwave;2992e84f91cbeb14eab234972e07ea9d;True;Forward;0;1;Forward;8;False;False;False;False;False;False;False;False;False;False;False;False;True;0;False;;False;True;0;False;;False;False;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;False;False;False;True;4;RenderPipeline=UniversalPipeline;RenderType=Transparent=RenderType;Queue=Transparent=Queue=0;UniversalMaterialType=Unlit;True;5;True;12;all;0;False;True;1;5;False;;10;False;;1;1;False;;10;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;True;True;True;True;0;False;;False;False;False;False;False;False;False;True;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;True;2;False;;True;3;False;;True;True;0;False;;0;False;;True;1;LightMode=UniversalForwardOnly;False;False;0;;0;0;Standard;22;Surface;1;638626744231147691;  Blend;0;0;Two Sided;1;0;Forward Only;0;0;Cast Shadows;1;0;  Use Shadow Threshold;0;0;GPU Instancing;1;0;LOD CrossFade;1;0;Built-in Fog;1;0;DOTS Instancing;0;0;Meta Pass;0;0;Extra Pre Pass;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Vertex Position,InvertActionOnDeselection;0;638626745253233562;0;10;False;True;True;True;False;False;True;True;True;False;False;;False;0
+Node;AmplifyShaderEditor.PosVertexDataNode;17;-841.8026,215.6356;Inherit;False;0;0;5;FLOAT3;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4
+Node;AmplifyShaderEditor.SimpleMultiplyOpNode;18;-546.8026,370.6356;Inherit;False;3;3;0;FLOAT3;0,0,0;False;1;FLOAT;0;False;2;FLOAT3;0,0,0;False;1;FLOAT3;0
+Node;AmplifyShaderEditor.RangedFloatNode;19;-908.8025,506.6356;Inherit;False;Property;_SizeFactor;SizeFactor;5;0;Create;True;0;0;0;False;0;False;0;0;0;0;0;1;FLOAT;0
+Node;AmplifyShaderEditor.BillboardNode;21;-894.2805,700.1602;Inherit;False;Spherical;True;True;0;1;FLOAT3;0
 WireConnection;11;1;10;1
 WireConnection;11;0;10;2
 WireConnection;11;2;10;3
 WireConnection;11;3;10;4
-WireConnection;15;0;11;0
-WireConnection;15;1;16;0
-WireConnection;15;2;24;0
-WireConnection;1;2;13;0
-WireConnection;1;3;15;0
-WireConnection;1;5;26;0
-WireConnection;24;0;22;0
-WireConnection;24;1;25;0
-WireConnection;22;1;18;0
-WireConnection;22;0;23;0
-WireConnection;26;0;18;0
-WireConnection;26;1;20;0
+WireConnection;13;0;11;0
+WireConnection;13;1;12;0
+WireConnection;16;0;14;0
+WireConnection;16;1;15;0
+WireConnection;1;2;16;0
+WireConnection;1;3;13;0
+WireConnection;1;5;18;0
 WireConnection;18;0;17;0
 WireConnection;18;1;19;0
+WireConnection;18;2;21;0
 ASEEND*/
-//CHKSM=3272F13D1FA884984C4169BC0404F72F415A3C25
+//CHKSM=56F9BCE992DCD0707BEA2AB59CE398FDD2B9DAFD

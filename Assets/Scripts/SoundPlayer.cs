@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class SoundPlayer : MonoBehaviour
 {
-
+    [SerializeField]
+    private bool playOnAwake = false;
     [SerializeField]
     private List<AudioClip> soundsToPlay;
     [SerializeField]
@@ -13,6 +14,8 @@ public class SoundPlayer : MonoBehaviour
     private float currentPitch = 1f;
     [SerializeField]
     private AudioSource emitter;
+
+
 
 
     public void Play(){
@@ -30,8 +33,15 @@ public class SoundPlayer : MonoBehaviour
     {
         if(emitter == null && !TryGetComponent<AudioSource>(out emitter)){
             this.enabled = false;
+            return;
+        }
+
+        if(playOnAwake){
+            Play();
         }
         
     }
+
+
 
 }
