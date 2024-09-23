@@ -7,13 +7,12 @@ public class SimpleBarrelBlock : Block
     public override void OnDamageTaken(Vector3 contactPosition, Vector3 contactNormal) {
         base.OnDamageTaken(contactPosition, contactNormal);
 
-        // DAMAGE FEEDBACKS
+        Instantiate(hitVFX, contactPosition, Quaternion.identity);
     }
 
     public override void OnDestruction() {
         base.OnDestruction();
 
-        // DESTRUCTION FEEDBACKS
 
         Destroy(gameObject);
     }

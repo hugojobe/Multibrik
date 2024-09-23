@@ -289,7 +289,7 @@ GameObject:
   - component: {fileID: 29364734}
   m_Layer: 0
   m_Name: ShopManager
-  m_TagString: Untagged
+  m_TagString: Bounce
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -307,8 +307,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemPrefabs:
-  - {fileID: 2139314116167884990, guid: 1ede779a7b2d6c34e8c812db8ea87b67, type: 3}
-  - {fileID: 2139314116167884990, guid: 9de5db43c604b4d43900184b3edef4dc, type: 3}
+  - {fileID: 4526146359900028690, guid: a8e1e806ea2762b45896d49fb7c34349, type: 3}
+  - {fileID: 4526146359900028690, guid: a8e1e806ea2762b45896d49fb7c34349, type: 3}
   - {fileID: 2139314116167884990, guid: ed9a7ec96c96fd84fa66fb59308e324b, type: 3}
   - {fileID: 2139314116167884990, guid: 8595752f79bca1242b3d011950325da9, type: 3}
   itemGhosts:

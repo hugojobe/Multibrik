@@ -23,9 +23,7 @@ public class Block : MonoBehaviour, BlockDamageInterface {
         }
     }
 
-    public virtual void OnDamageTaken(Vector3 contactPosition, Vector3 contactNormal) {
-        Instantiate(hitVFX, contactPosition, Quaternion.identity);
-    }
+    public virtual void OnDamageTaken(Vector3 contactPosition, Vector3 contactNormal) {}
 
     public virtual void OnDestruction(){
         correspondingTile.isEmpty = true;

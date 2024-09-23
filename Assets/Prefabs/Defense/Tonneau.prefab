@@ -67,7 +67,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e01df5fab8e38249adbf6652913c630, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseHealth: 1
+  baseHealth: 2
   currentHealth: 0
   hitVFX: {fileID: 3061699504531628418, guid: 53e13e7e299928d4b9b7e8871b5707fc, type: 3}
   correspondingTile: {fileID: 0}
