@@ -360,6 +360,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d262c63325dfbb741b815f190f9d605f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playOnAwake: 0
   soundsToPlay:
   - {fileID: 8300000, guid: d96a4d3ce1e1ae941b9f7de0f7d46f81, type: 3}
   - {fileID: 8300000, guid: 00faf60d0538b1c4ea40cbdbb0b2b5af, type: 3}
@@ -594,8 +595,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 32
-  m_fontSizeBase: 32
+  m_fontSize: 48
+  m_fontSizeBase: 48
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -861,6 +862,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d262c63325dfbb741b815f190f9d605f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playOnAwake: 0
   soundsToPlay:
   - {fileID: 8300000, guid: d96a4d3ce1e1ae941b9f7de0f7d46f81, type: 3}
   - {fileID: 8300000, guid: 00faf60d0538b1c4ea40cbdbb0b2b5af, type: 3}
@@ -1116,7 +1118,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 200}
-  m_SizeDelta: {x: 180, y: 75}
+  m_SizeDelta: {x: 270, y: 112.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &414528107679568444
 CanvasRenderer:
@@ -1321,6 +1323,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d262c63325dfbb741b815f190f9d605f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playOnAwake: 0
   soundsToPlay:
   - {fileID: 8300000, guid: d96a4d3ce1e1ae941b9f7de0f7d46f81, type: 3}
   - {fileID: 8300000, guid: 00faf60d0538b1c4ea40cbdbb0b2b5af, type: 3}
@@ -1509,7 +1512,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 180, y: 75}
+  m_SizeDelta: {x: 270, y: 112.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2470720253830463620
 CanvasRenderer:
@@ -1738,6 +1741,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d262c63325dfbb741b815f190f9d605f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playOnAwake: 0
   soundsToPlay:
   - {fileID: 8300000, guid: d96a4d3ce1e1ae941b9f7de0f7d46f81, type: 3}
   - {fileID: 8300000, guid: 00faf60d0538b1c4ea40cbdbb0b2b5af, type: 3}
@@ -2080,6 +2084,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d262c63325dfbb741b815f190f9d605f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playOnAwake: 0
   soundsToPlay:
   - {fileID: 8300000, guid: d96a4d3ce1e1ae941b9f7de0f7d46f81, type: 3}
   - {fileID: 8300000, guid: 00faf60d0538b1c4ea40cbdbb0b2b5af, type: 3}
@@ -2299,6 +2304,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d262c63325dfbb741b815f190f9d605f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playOnAwake: 0
   soundsToPlay:
   - {fileID: 8300000, guid: d96a4d3ce1e1ae941b9f7de0f7d46f81, type: 3}
   - {fileID: 8300000, guid: 00faf60d0538b1c4ea40cbdbb0b2b5af, type: 3}
@@ -2578,8 +2584,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 36
+  m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2749,8 +2755,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 36
+  m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -3447,6 +3453,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d262c63325dfbb741b815f190f9d605f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playOnAwake: 0
   soundsToPlay:
   - {fileID: 8300000, guid: d96a4d3ce1e1ae941b9f7de0f7d46f81, type: 3}
   - {fileID: 8300000, guid: 00faf60d0538b1c4ea40cbdbb0b2b5af, type: 3}
@@ -3568,7 +3575,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -200}
-  m_SizeDelta: {x: 180, y: 75}
+  m_SizeDelta: {x: 270, y: 112.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8245345438667633472
 CanvasRenderer:
@@ -3785,6 +3792,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d262c63325dfbb741b815f190f9d605f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playOnAwake: 0
   soundsToPlay:
   - {fileID: 8300000, guid: d96a4d3ce1e1ae941b9f7de0f7d46f81, type: 3}
   - {fileID: 8300000, guid: 00faf60d0538b1c4ea40cbdbb0b2b5af, type: 3}
@@ -4017,7 +4025,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 400}
-  m_SizeDelta: {x: 180, y: 75}
+  m_SizeDelta: {x: 270, y: 112.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4811548259792837079
 CanvasRenderer:
@@ -4246,6 +4254,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d262c63325dfbb741b815f190f9d605f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playOnAwake: 0
   soundsToPlay:
   - {fileID: 8300000, guid: d96a4d3ce1e1ae941b9f7de0f7d46f81, type: 3}
   - {fileID: 8300000, guid: 00faf60d0538b1c4ea40cbdbb0b2b5af, type: 3}
@@ -5235,8 +5244,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 32
-  m_fontSizeBase: 32
+  m_fontSize: 48
+  m_fontSizeBase: 48
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
