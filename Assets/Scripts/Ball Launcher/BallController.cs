@@ -15,7 +15,9 @@ public class BallController : MonoBehaviour
 
 	private bool resetSpeedNextBounce;
 
-	private void Awake() {
+    public GameObject ropeCollisionVFX;
+
+    private void Awake() {
 		instance = this;
 	}
 	public void ReplaceVelocity(Vector3 direction) {
@@ -103,5 +105,8 @@ public class BallController : MonoBehaviour
 
 	public void PlayRopeCollisionFeedback() {
         // VFX COLLISION CORDE
+        Instantiate(ropeCollisionVFX, transform.position, Quaternion.identity);
+        
+
     }
 }

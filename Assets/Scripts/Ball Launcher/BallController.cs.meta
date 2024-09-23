@@ -3,7 +3,10 @@ guid: c84e868eb678d7c408fb2388fc10cee5
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - rb: {instanceID: 0}
+  - ropeCollisionVFX: {fileID: 6124120337769044646, guid: 4c09fab6d7e4ec343984444f32146580,
+      type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
