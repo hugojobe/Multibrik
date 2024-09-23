@@ -8,6 +8,14 @@ public class ExplosiveBlock : MonoBehaviour
 
     public float explosionRadius;
 
+    [SerializeField] private PlayParticles windVFX;
+    [SerializeField] private TonneauExplosionVFXBehaviour explosionVFX;
+    [SerializeField] private TonneauTrail tonneauTrail;
+    [SerializeField] private TonneauExplosifBallImpact tonneauExplosifBallImpact;
+    [SerializeField] private SoundPlayer ExplosionSound;
+    [SerializeField] private float destroyDelay = 1.5f;
+    [SerializeField] private GameObject TonneauRenderer;
+
     private void OnDrawGizmos() {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, explosionRadius);
@@ -16,6 +24,8 @@ public class ExplosiveBlock : MonoBehaviour
     private void OnTriggerEnter(Collider other) {
         if(other.gameObject.CompareTag("Ground")) {
             Debug.Log("hit");
+            windVFX.StartParticles();
+            
             // VFX HIT GROUND
         }
     }
@@ -23,6 +33,8 @@ public class ExplosiveBlock : MonoBehaviour
     public void StartExplosionSequence() {
 
         // HIT
+        tonneauTrail.StartTrail();
+        tonneauExplosifBallImpact.BallImpact();
 
         Invoke("Explode", 2);
     }
@@ -30,6 +42,10 @@ public class ExplosiveBlock : MonoBehaviour
     private void Explode() {
 
         // EXPLOSIONN FEEDBACK
+        explosionVFX.StartTonneauVFX();
+        ExplosionSound.Play();
+        TonneauRenderer.SetActive(false);
+        StartCoroutine(DestroyTime());
 
         Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
         foreach(Collider collider in colliders) {
@@ -38,7 +54,11 @@ public class ExplosiveBlock : MonoBehaviour
                 block.TakeDamage(1, Vector3.zero, Vector3.zero);
             }
         }
-
+       
+    }
+    private IEnumerator DestroyTime()
+    {
+        yield return new WaitForSeconds(destroyDelay);
         Destroy(gameObject);
     }
 }

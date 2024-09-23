@@ -55,12 +55,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AberationIntencity: 0.0084
+    - _AberationIntencity: 0.0044
+    - _Activation: 0
     - _AlphaCutoff: 0.5
-    - _ColorIntencity: 0.6
-    - _DistortionIntencity: 0.102
-    - _DistortionSpeed: 1.11
-    - _FresnelPower: 0.62
+    - _ColorIntencity: 0.47
+    - _DistortionIntencity: 0.196
+    - _DistortionSpeed: 1.05
+    - _FresnelPower: 0.51
     - _GradientSmooth: 2.3
     - _NoiseSmooth: 1
     - _NoiseSpeed: 0.76

@@ -5,12 +5,14 @@ using UnityEngine;
 
 public class TonneauExplosionVFXBehaviour : PlayParticles
 {
-    [SerializeField] private Material tonneauExplosionMeshMat;
+    [SerializeField] private Renderer explosionMeshRenderer;
+    private MaterialPropertyBlock explosionMeshMPB;
     private float explosionMeshActivation = 0;
     [SerializeField] private  float explosionMeshActivationSpeed = 1.0f;
     private bool _explosionMeshIsActive = false;
     void Start()
     {
+        explosionMeshMPB = new MaterialPropertyBlock();
         explosionMeshActivation = 0;
     }   
     void Update()
@@ -23,7 +25,9 @@ public class TonneauExplosionVFXBehaviour : PlayParticles
         if (_explosionMeshIsActive)
         {
             explosionMeshActivation = Mathf.MoveTowards(explosionMeshActivation, 1, explosionMeshActivationSpeed * Time.deltaTime);
-            tonneauExplosionMeshMat.SetFloat("_Activation", explosionMeshActivation);
+            explosionMeshRenderer.SetPropertyBlock(explosionMeshMPB);
+            explosionMeshMPB.SetFloat("_Activation", explosionMeshActivation);
+
             if (explosionMeshActivation == 1)
             {
                 _explosionMeshIsActive = false;

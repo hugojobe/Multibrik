@@ -60,18 +60,18 @@ Material:
     - _FastlAberationIntencity: 0.0152
     - _FlastLengh: 2.22
     - _Lengh: 3.21
-    - _NoisePower: 2.07
+    - _NoisePower: 1.1
     - _PanSpeed: 2.23
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _SlowAberationIntencity: 0.0118
+    - _SlowAberationIntencity: 0.0059
     - _SlowDistortionIntencity: 0.071
     - _SlowDistortionPanSpeed: 1.07
-    - _SlowLengh: 3.79
+    - _SlowLengh: 5.77
     - _SlowPanSpeed: 0.84
-    - _SlowWidth: 6.86
-    - _Speed: 1
+    - _SlowWidth: 9.66
+    - _Speed: 0
     - _Width: 8.11
     - _aberation: 0.0296
     m_Colors:
