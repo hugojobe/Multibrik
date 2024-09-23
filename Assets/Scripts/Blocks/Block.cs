@@ -15,11 +15,10 @@ public class Block : MonoBehaviour, BlockDamageInterface {
     }
 
     public void TakeDamage(int damage, Vector3 contactPosition, Vector3 contactNormal) {
+        OnDamageTaken(contactPosition, contactNormal);
         currentHealth -= damage;
         if(currentHealth <= 0) {
             OnDestruction();
-        } else {
-            OnDamageTaken(contactPosition, contactNormal);
         }
     }
 
