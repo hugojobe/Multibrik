@@ -16,7 +16,7 @@ public class AnimatedVFX : MonoBehaviour
         
     }
 
-    public void destroyObject(){
+    public void destroyObject(float delay){
         Destroy(gameObject);
     }
 }
